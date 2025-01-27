@@ -37,9 +37,7 @@ The primary goal of this project is to implement complex business logic related 
 ## Technologies Used
 
 - **Programming Language:** Go
-- **Web Framework:** Gorilla Mux
 - **Database:** PostgreSQL
-- **ORM:** GORM
 - **Authentication:** JWT
 - **Password Hashing:** bcrypt
 - **Environment Management:** godotenv
