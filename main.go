@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -34,6 +35,7 @@ func main() {
 
 	http.HandleFunc("/users/signup", signUp)
 	http.HandleFunc("/users/login", logIn)
+	http.Handle("/movies/protected", authMiddleware(http.HandlerFunc(protectedRoute)))
 
 	fmt.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -126,4 +128,40 @@ func GenerateJWT(user User) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(jwtSecret))
+}
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+		if tokenString == "" {
+			http.Error(w, "Missing token", http.StatusUnauthorized)
+			return
+		}
+
+		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+		if tokenString == "" {
+			http.Error(w, "Missing token", http.StatusUnauthorized)
+			return
+		}
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(jwtSecret), nil
+		})
+
+		if err != nil || !token.Valid {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func protectedRoute(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Welcome to the protected route!"})
 }
