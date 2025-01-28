@@ -44,6 +44,7 @@ func main() {
 
 	http.HandleFunc("/users/signup", signUp)
 	http.HandleFunc("/users/login", logIn)
+	http.HandleFunc("/movies", handleMovies)
 	http.Handle("/movies/protected", authMiddleware(http.HandlerFunc(protectedRoute)))
 	http.Handle("/admin", roleMiddleware("admin", http.HandlerFunc(adminRoute)))
 	http.Handle("/user", roleMiddleware("user", http.HandlerFunc(userRoute)))
@@ -71,6 +72,17 @@ func initDB() (*pgxpool.Pool, error) {
 
 	log.Println("Successfully connected to the database")
 	return db, nil
+}
+
+func handleMovies(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getAllMovies(w)
+	case http.MethodPost:
+		roleMiddleware("admin", http.HandlerFunc(addMovie)).ServeHTTP(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func signUp(w http.ResponseWriter, r *http.Request) {
@@ -242,4 +254,54 @@ func userRoute(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Welcome User!"})
+}
+
+// Add a new movie (Admin-only)
+func addMovie(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var movie Movie
+	if err := json.NewDecoder(r.Body).Decode(&movie); err != nil {
+		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
+
+	_, err := db.Exec(context.Background(), `
+			INSERT INTO movies (title, description, genre, poster_image)
+			VALUES ($1, $2, $3, $4)`, movie.Title, movie.Description, movie.Genre, movie.PosterImage)
+	if err != nil {
+		http.Error(w, "Falied to add movie", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Movie added successfully"})
+}
+
+// Get all movies (Public)
+func getAllMovies(w http.ResponseWriter) {
+	rows, err := db.Query(context.Background(), "SELECT id, title, description, genre, poster_image FROM movies")
+	if err != nil {
+		http.Error(w, "Failed to fetch movies", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var movies []Movie
+	for rows.Next() {
+		var movie Movie
+		err := rows.Scan(&movie.ID, &movie.Title, &movie.Description, &movie.Genre, &movie.PosterImage)
+		if err != nil {
+			http.Error(w, "Failed to parse movie data", http.StatusInternalServerError)
+			return
+		}
+		movies = append(movies, movie)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(movies)
 }
