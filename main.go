@@ -7,10 +7,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -45,6 +47,7 @@ func main() {
 	http.HandleFunc("/users/signup", signUp)
 	http.HandleFunc("/users/login", logIn)
 	http.HandleFunc("/movies", handleMovies)
+	http.HandleFunc("/movies/", handleMovieByID)
 	http.Handle("/movies/protected", authMiddleware(http.HandlerFunc(protectedRoute)))
 	http.Handle("/admin", roleMiddleware("admin", http.HandlerFunc(adminRoute)))
 	http.Handle("/user", roleMiddleware("user", http.HandlerFunc(userRoute)))
@@ -77,9 +80,31 @@ func initDB() (*pgxpool.Pool, error) {
 func handleMovies(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		getAllMovies(w)
+		getMovies(w, r)
 	case http.MethodPost:
 		roleMiddleware("admin", http.HandlerFunc(addMovie)).ServeHTTP(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func handleMovieByID(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/movies/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid movie ID", http.StatusBadRequest)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodPut:
+		roleMiddleware("admin", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			updateMovie(w, r, id)
+		})).ServeHTTP(w, r)
+	case http.MethodDelete:
+		roleMiddleware("admin", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			deleteMovie(w, id)
+		})).ServeHTTP(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -282,12 +307,29 @@ func addMovie(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get all movies (Public)
-func getAllMovies(w http.ResponseWriter) {
-	rows, err := db.Query(context.Background(), "SELECT id, title, description, genre, poster_image FROM movies")
+func getMovies(w http.ResponseWriter, r *http.Request) {
+	genre := r.URL.Query().Get("genre")
+
+	var rows pgx.Rows
+	var err error
+
+	if genre != "" {
+		rows, err = db.Query(context.Background(), `
+		SELECT id, title, description, genre, poster_image
+		FROM movies
+		WHERE genre ILIKE $1`, "%"+genre+"%")
+	} else {
+		rows, err = db.Query(context.Background(), `
+		SELECT id, title, description, genre, poster_image
+		FROM movies`)
+	}
+
 	if err != nil {
+		log.Printf("error fetching movies: %v", err)
 		http.Error(w, "Failed to fetch movies", http.StatusInternalServerError)
 		return
 	}
+
 	defer rows.Close()
 
 	var movies []Movie
@@ -304,4 +346,42 @@ func getAllMovies(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(movies)
+}
+
+// Update a movie (admin-only)
+func updateMovie(w http.ResponseWriter, r *http.Request, id int) {
+	var movie Movie
+	if err := json.NewDecoder(r.Body).Decode(&movie); err != nil {
+		http.Error(w, "Invalid input", http.StatusInternalServerError)
+		return
+	}
+
+	_, err := db.Exec(context.Background(), `
+	UPDATE movies 
+	SET title = $1, 
+	description = $2, 
+	poster_image = $4 
+	WHERE id = $5`,
+		movie.Title, movie.Description, movie.Genre, movie.PosterImage, id)
+	if err != nil {
+		http.Error(w, "Failed to update movie", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Movie updated successfully"})
+}
+
+// Delete a movie (admin-only)
+func deleteMovie(w http.ResponseWriter, id int) {
+	_, err := db.Exec(context.Background(), "DELETE FROM movies WHERE id = $1", id)
+	if err != nil {
+		http.Error(w, "Falied to delete movie", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Movie deleted successfully"})
 }
