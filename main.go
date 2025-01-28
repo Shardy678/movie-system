@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	db        *pgx.Conn
+	db        *pgxpool.Pool
 	jwtSecret string
 )
 
@@ -31,7 +31,16 @@ func main() {
 		log.Fatal("SECRET_KEY is not set in the environment")
 	}
 
-	initDB()
+	var err error
+	db, err = initDB()
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer db.Close()
+
+	if err := seedDatabase(); err != nil {
+		log.Fatalf("failed to seed database: %v", err)
+	}
 
 	http.HandleFunc("/users/signup", signUp)
 	http.HandleFunc("/users/login", logIn)
@@ -41,17 +50,25 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func initDB() {
+func initDB() (*pgxpool.Pool, error) {
 	connStr := "postgres://nosweat:password@localhost:5432/movie_system"
-	var err error
-	db, err = pgx.Connect(context.Background(), connStr)
+
+	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
-		log.Fatal("Failed to connect to the database:", err)
+		return nil, fmt.Errorf("failed to parse connection string: %w", err)
+	}
+
+	db, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
 	if err := db.Ping(context.Background()); err != nil {
-		log.Fatal("Database is unreachable:", err)
+		return nil, fmt.Errorf("database is unreachable: %w", err)
 	}
+
+	log.Println("Successfully connected to the database")
+	return db, nil
 }
 
 func signUp(w http.ResponseWriter, r *http.Request) {
@@ -68,13 +85,13 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, "Cound not hash pasword", http.StatusInternalServerError)
+		http.Error(w, "Could not hash password", http.StatusInternalServerError)
 		return
 	}
 
 	_, err = db.Exec(context.Background(), "INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)", user.Username, string(hashedPassword), user.Role)
 	if err != nil {
-		log.Printf("Error saving user: %v", err) // Log the error
+		log.Printf("Error saving user: %v", err)
 		http.Error(w, "Failed to save user", http.StatusInternalServerError)
 		return
 	}
@@ -115,7 +132,7 @@ func logIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
