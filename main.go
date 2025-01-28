@@ -385,3 +385,88 @@ func deleteMovie(w http.ResponseWriter, id int) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Movie deleted successfully"})
 }
+
+func addShowtime(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var showtime Showtime
+	if err := json.NewDecoder(r.Body).Decode(&showtime); err != nil {
+		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
+
+	_, err := db.Exec(context.Background(), `
+		INSERT INTO showtimes (movie_id, start_time, capacity, reserved)
+		VALUES ($1,$2,$3,$4)`,
+		showtime.MovieID, showtime.StartTime, showtime.Capacity, showtime.Reserved)
+	if err != nil {
+		http.Error(w, "Failed to add showtime", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Showtime added successfully"})
+}
+
+func updateShowtime(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Invalid request method", http.StatusBadRequest)
+		return
+	}
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/showtimes/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid showtime ID", http.StatusBadRequest)
+		return
+	}
+
+	var showtime Showtime
+	if err := json.NewDecoder(r.Body).Decode(&showtime); err != nil {
+		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+	}
+
+	_, err = db.Exec(context.Background(), `
+		UPDATE showtimes
+		SET movie_id = $1, start_time = $2, capacity = $3, reserved = $4
+		WHERE id = $5`,
+		showtime.MovieID, showtime.StartTime, showtime.Capacity, showtime.Reserved, id)
+	if err != nil {
+		http.Error(w, "Failed to update showtime", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Showtime updated successfully"})
+}
+
+func deleteShowtime(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Inalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/showtimes/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid showtime ID", http.StatusBadRequest)
+		return
+	}
+
+	_, err = db.Exec(context.Background(), "DELETE FROM showtimes WHERE id = $1", id)
+	if err != nil {
+		http.Error(w, "Falied to delete showtime", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Showtime deleted successfully"})
+}
+
+// TODO: implement routes for showtimes
