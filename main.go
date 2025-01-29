@@ -48,6 +48,8 @@ func main() {
 	http.HandleFunc("/users/login", logIn)
 	http.HandleFunc("/movies", handleMovies)
 	http.HandleFunc("/movies/", handleMovieByID)
+	http.HandleFunc("/showtimes", handleShowtimes)
+	http.HandleFunc("/showtimes/", handleShowtimeByID)
 	http.Handle("/movies/protected", authMiddleware(http.HandlerFunc(protectedRoute)))
 	http.Handle("/admin", roleMiddleware("admin", http.HandlerFunc(adminRoute)))
 	http.Handle("/user", roleMiddleware("user", http.HandlerFunc(userRoute)))
@@ -469,4 +471,64 @@ func deleteShowtime(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Showtime deleted successfully"})
 }
 
-// TODO: implement routes for showtimes
+func getShowtimes(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Inalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var rows pgx.Rows
+	var err error
+	rows, err = db.Query(context.Background(), `
+		SELECT id, movie_id, start_time,capacity, reserved
+		FROM showtimes`)
+
+	if err != nil {
+		log.Printf("error fetching showtimes: %v", err)
+		http.Error(w, "Failed to fetch showtimes", http.StatusInternalServerError)
+		return
+	}
+
+	defer rows.Close()
+
+	var showtimes []Showtime
+	for rows.Next() {
+		var showtime Showtime
+		err := rows.Scan(&showtime.ID, &showtime.MovieID, &showtime.StartTime, &showtime.Capacity, &showtime.Reserved)
+		if err != nil {
+			http.Error(w, "Failed to parse showtime data", http.StatusInternalServerError)
+			return
+		}
+		showtimes = append(showtimes, showtime)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(showtimes)
+}
+
+func handleShowtimes(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		roleMiddleware("admin", http.HandlerFunc(addShowtime)).ServeHTTP(w, r)
+	case http.MethodGet:
+		getShowtimes(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func handleShowtimeByID(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPut:
+		roleMiddleware("admin", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			updateShowtime(w, r)
+		})).ServeHTTP(w, r)
+	case http.MethodDelete:
+		roleMiddleware("admin", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			deleteShowtime(w, r)
+		})).ServeHTTP(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
