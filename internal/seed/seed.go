@@ -1,14 +1,15 @@
-package main
+package seed
 
 import (
 	"context"
 	"fmt"
+	"movie-system/config"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func seedDatabase() error {
+func SeedDatabase() error {
 	ctx := context.Background()
 
 	adminPassword := "admin123"
@@ -17,7 +18,7 @@ func seedDatabase() error {
 		return fmt.Errorf("failed to hash admin password: %w", err)
 	}
 
-	_, err = db.Exec(ctx, `
+	_, err = config.DB.Exec(ctx, `
 			INSERT INTO users (username, password_hash, role, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, $5)
 			ON CONFLICT (username) DO NOTHING`,
@@ -51,7 +52,7 @@ func seedDatabase() error {
 		},
 	}
 	for _, movie := range movies {
-		_, err := db.Exec(ctx, `
+		_, err := config.DB.Exec(ctx, `
 				INSERT INTO movies (title, description, genre, poster_image)
 				VALUES ($1,$2,$3,$4)
 				ON CONFLICT (title) DO NOTHING`,

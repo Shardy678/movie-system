@@ -1,4 +1,4 @@
-module main
+module movie-system
 
 go 1.23.5
 
