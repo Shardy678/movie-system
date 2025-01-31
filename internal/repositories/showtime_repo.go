@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"movie-system/internal/models"
 
@@ -68,4 +69,66 @@ func (repo *ShowtimeRepository) UpdateShowtime(ctx context.Context, id int, show
 func (repo *ShowtimeRepository) DeleteShowtime(ctx context.Context, id int) error {
 	_, err := repo.DB.Exec(ctx, "DELETE FROM showtimes WHERE id = $1", id)
 	return err
+}
+
+func (repo *ShowtimeRepository) GetAvailableSeats(ctx context.Context, id int) ([]string, error) {
+	query := `
+			SELECT seats
+			FROM reservations
+			WHERE showtime_id = $1
+	`
+	rows, err := repo.DB.Query(ctx, query, id)
+	if err != nil {
+		log.Printf("error fetching reserved seats: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	reservedSeats := make(map[string]bool)
+	for rows.Next() {
+		var seats []string
+		if err := rows.Scan(&seats); err != nil {
+			log.Printf("error scanning seats: %v", err)
+			return nil, err
+		}
+		for _, seat := range seats {
+			reservedSeats[seat] = true
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error during rows iteration: %v", err)
+		return nil, err
+	}
+
+	var capacity int
+	err = repo.DB.QueryRow(ctx, `
+			SELECT capacity
+			FROM showtimes
+			WHERE id = $1`, id).Scan(&capacity)
+	if err != nil {
+		log.Printf("error fetching showtime capacity: %v", err)
+		return nil, err
+	}
+	allSeats := generateAllSeats(capacity)
+
+	var availableSeats []string
+	for _, seat := range allSeats {
+		if !reservedSeats[seat] {
+			availableSeats = append(availableSeats, seat)
+		}
+	}
+	return availableSeats, nil
+}
+
+func generateAllSeats(capacity int) []string {
+	rows := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}
+	columns := capacity / len(rows)
+	var seats []string
+	for _, row := range rows {
+		for col := 1; col <= columns; col++ {
+			seats = append(seats, fmt.Sprintf("%s%d", row, col))
+		}
+	}
+	return seats
 }

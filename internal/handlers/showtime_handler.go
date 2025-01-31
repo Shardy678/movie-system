@@ -108,3 +108,26 @@ func (h *ShowtimeHandler) HandleDeleteShowtime(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Showtime deleted successfully"})
 }
+
+func (h *ShowtimeHandler) HandleGetSeats(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	showtimeIDStr := strings.TrimPrefix(r.URL.Path, "/showtimes/seats/")
+	showtimeID, err := strconv.Atoi(showtimeIDStr)
+	if err != nil {
+		http.Error(w, "Invalid showtime ID", http.StatusBadRequest)
+		return
+	}
+
+	seats, err := h.Repo.GetAvailableSeats(context.Background(), showtimeID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(seats)
+}
