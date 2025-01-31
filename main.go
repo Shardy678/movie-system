@@ -47,7 +47,10 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(authService)
 
-	routes.SetupRoutes(movieHandler, showtimeHandler, authHandler)
+	reservationRepo := repositories.NewReservationRepository(config.DB)
+	reservationHandler := handlers.NewReservationHandler(reservationRepo)
+
+	routes.SetupRoutes(movieHandler, showtimeHandler, authHandler, reservationHandler)
 
 	fmt.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

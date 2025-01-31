@@ -25,8 +25,8 @@ type Reservation struct {
 	UserID     uint      `json:"user_id"`
 	MovieID    uint      `json:"movie_id"`
 	ShowtimeID uint      `json:"showtime_id"`
-	Seats      uint      `json:"seats"`
 	CreatedAt  time.Time `json:"created_at"`
+	Seats      []string  `json:"seats"`
 }
 
 type Showtime struct {
