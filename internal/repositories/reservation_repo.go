@@ -7,6 +7,7 @@ import (
 	"movie-system/internal/models"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,13 +22,32 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 func (r *ReservationRepository) ReserveSeat(ctx context.Context, reservation *models.Reservation) error {
 	seatsArray := "{" + strings.Join(reservation.Seats, ",") + "}"
 	var count int
+
+	txOptions := pgx.TxOptions{}
+	tx, err := r.DB.BeginTx(ctx, txOptions)
+	if err != nil {
+		return fmt.Errorf("error starting transcation: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				fmt.Printf("error rolling back transcation: %v\n", rollbackErr)
+			}
+		} else {
+			if commitErr := tx.Commit(ctx); commitErr != nil {
+				fmt.Printf("error committing transcation: %v\n", commitErr)
+			}
+		}
+	}()
+
 	checkSeatsQuery := `
 		SELECT COUNT(*)
 		FROM reservations
 		WHERE showtime_id = $1
 		AND seats && $2;
 	`
-	err := r.DB.QueryRow(ctx, checkSeatsQuery, reservation.ShowtimeID, seatsArray).Scan(&count)
+	err = tx.QueryRow(ctx, checkSeatsQuery, reservation.ShowtimeID, seatsArray).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("error checking seat availability: %w", err)
 	}
@@ -42,7 +62,7 @@ func (r *ReservationRepository) ReserveSeat(ctx context.Context, reservation *mo
 	`
 
 	var reservationID int
-	err = r.DB.QueryRow(ctx, insertReservationQuery, reservation.UserID, reservation.MovieID, reservation.ShowtimeID, seatsArray).Scan(&reservationID)
+	err = tx.QueryRow(ctx, insertReservationQuery, reservation.UserID, reservation.MovieID, reservation.ShowtimeID, seatsArray).Scan(&reservationID)
 	if err != nil {
 		return fmt.Errorf("error creating reservation: %w", err)
 	}
@@ -54,11 +74,10 @@ func (r *ReservationRepository) ReserveSeat(ctx context.Context, reservation *mo
 	`
 
 	numSeats := len(reservation.Seats)
-	_, err = r.DB.Exec(ctx, incrementReservedQuery, numSeats, reservation.ShowtimeID)
+	_, err = tx.Exec(ctx, incrementReservedQuery, numSeats, reservation.ShowtimeID)
 	if err != nil {
 		return fmt.Errorf("error updating reserved seats: %w", err)
 	}
 
-	fmt.Printf("Reservation successful! Reservation ID: %d\n", reservationID)
 	return nil
 }
