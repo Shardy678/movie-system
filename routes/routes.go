@@ -25,5 +25,6 @@ func SetupRoutes(movieHandler *handlers.MovieHandler, showtimeHandler *handlers.
 	http.HandleFunc("/showtimes/seats/", showtimeHandler.HandleGetSeats)                                                    // GET /showtimes/seats/{id}
 
 	// Reservation routes
-	http.HandleFunc("/reserve", reservationHandler.HandleReservation) // POST /reserve
+	http.HandleFunc("/reserve", reservationHandler.HandleReservation)               // POST /reserve
+	http.HandleFunc("/reserve/delete/", reservationHandler.HandleCancelReservation) //DELETE /reserve/delete
 }

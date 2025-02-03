@@ -7,6 +7,8 @@ import (
 	"movie-system/internal/models"
 	"movie-system/internal/repositories"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type ReservationHandler struct {
@@ -45,6 +47,33 @@ func (h *ReservationHandler) HandleReservation(w http.ResponseWriter, r *http.Re
 		"message":        "Reservation succesfull",
 		"reservation_id": reservation.ID,
 	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+	}
+}
+
+func (h *ReservationHandler) HandleCancelReservation(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	reservationIDStr := strings.TrimPrefix(r.URL.Path, "/reserve/delete/")
+	reservationID, err := strconv.Atoi(reservationIDStr)
+	if err != nil {
+		http.Error(w, "invalid reservation ID", http.StatusBadRequest)
+		return
+	}
+
+	err = h.Repo.CancelReservation(context.Background(), reservationID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error cancelling reservation: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := map[string]string{"message": "Reservation cancelled successfully"}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 	}

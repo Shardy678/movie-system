@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"movie-system/internal/models"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,8 +24,7 @@ func (r *ReservationRepository) ReserveSeat(ctx context.Context, reservation *mo
 	seatsArray := "{" + strings.Join(reservation.Seats, ",") + "}"
 	var count int
 
-	txOptions := pgx.TxOptions{}
-	tx, err := r.DB.BeginTx(ctx, txOptions)
+	tx, err := r.DB.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("error starting transcation: %w", err)
 	}
@@ -79,5 +79,77 @@ func (r *ReservationRepository) ReserveSeat(ctx context.Context, reservation *mo
 		return fmt.Errorf("error updating reserved seats: %w", err)
 	}
 
+	return nil
+}
+
+func (r *ReservationRepository) CancelReservation(ctx context.Context, reservationID int) error {
+	tx, err := r.DB.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				fmt.Printf("error rolling back transcation: %v\n", rollbackErr)
+			}
+		} else {
+			if commitErr := tx.Commit(ctx); commitErr != nil {
+				fmt.Printf("error committing transcation: %v\n", commitErr)
+			}
+		}
+	}()
+
+	var showtimeID int
+	var seatsArray []string
+	checkReservationQuery := `
+		SELECT showtime_id, seats
+		FROM reservations
+		WHERE id = $1;
+	`
+	err = tx.QueryRow(ctx, checkReservationQuery, reservationID).Scan(&showtimeID, &seatsArray)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return errors.New("reservation not found")
+		}
+		return fmt.Errorf("error checking reservation: %w", err)
+	}
+
+	var showtimeTime time.Time
+	checkShowtimeQuery := `
+		SELECT start_time
+		FROM showtimes 
+		WHERE id = $1;
+	`
+	err = tx.QueryRow(ctx, checkShowtimeQuery, showtimeID).Scan(&showtimeTime)
+	if err != nil {
+		return fmt.Errorf("error checking showtime: %w", err)
+	}
+
+	if showtimeTime.Before(time.Now()) {
+		return errors.New("cannot cancel a reservation for a past showtime")
+	}
+
+	numSeats := len(seatsArray)
+	decrementReservedQuery := `
+		UPDATE showtimes
+		SET reserved = reserved - $1
+		WHERE id = $2;
+	`
+	_, err = tx.Exec(ctx, decrementReservedQuery, numSeats, showtimeID)
+	if err != nil {
+		return fmt.Errorf("error updating reserved seats: %w", err)
+	}
+
+	deleteReservationQuery := `
+	DELETE FROM reservations
+	WHERE id = $1;
+	`
+	_, err = tx.Exec(ctx, deleteReservationQuery, reservationID)
+	if err != nil {
+		return fmt.Errorf("error deleting reservation: %w", err)
+	}
+
+	fmt.Printf("Reservation %d canceled successfully.\n", reservationID)
 	return nil
 }
