@@ -70,3 +70,12 @@ func (repo *UserRepository) AuthenticateUser(ctx context.Context, username, pass
 
 	return role, nil
 }
+
+func (repo *UserRepository) GetUserID(ctx context.Context, username string) (int, error) {
+	var userID int
+	err := repo.db.QueryRow(ctx, "SELECT id from users WHERE username = $1", username).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
+}

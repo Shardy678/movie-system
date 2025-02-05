@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"movie-system/internal/models"
 	"strings"
 	"time"
@@ -152,4 +153,39 @@ func (r *ReservationRepository) CancelReservation(ctx context.Context, reservati
 
 	fmt.Printf("Reservation %d canceled successfully.\n", reservationID)
 	return nil
+}
+
+func (repo *ReservationRepository) GetReservations(ctx context.Context, id int) ([]models.Reservation, error) {
+	var rows pgx.Rows
+	var err error
+
+	query := `
+		SELECT id, user_id, movie_id, showtime_id, seats, created_at
+		FROM reservations
+		WHERE user_id = $1
+	`
+
+	rows, err = repo.DB.Query(ctx, query, id)
+	if err != nil {
+		log.Printf("error fetching reservations: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reservations []models.Reservation
+	for rows.Next() {
+		var reservation models.Reservation
+		if err := rows.Scan(&reservation.ID, &reservation.UserID, &reservation.MovieID, &reservation.ShowtimeID, &reservation.Seats, &reservation.CreatedAt); err != nil {
+			log.Printf("error scanning reservations: %v", err)
+			return nil, err
+		}
+		reservations = append(reservations, reservation)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error during rows iteration: %v", err)
+		return nil, err
+	}
+
+	return reservations, err
 }

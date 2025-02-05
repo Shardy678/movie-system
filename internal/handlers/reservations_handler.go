@@ -6,17 +6,21 @@ import (
 	"fmt"
 	"movie-system/internal/models"
 	"movie-system/internal/repositories"
+	"movie-system/internal/services"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
 type ReservationHandler struct {
-	Repo *repositories.ReservationRepository
+	Repo        *repositories.ReservationRepository
+	AuthService *services.AuthService
 }
 
-func NewReservationHandler(repo *repositories.ReservationRepository) *ReservationHandler {
-	return &ReservationHandler{Repo: repo}
+func NewReservationHandler(repo *repositories.ReservationRepository, authservice *services.AuthService) *ReservationHandler {
+	return &ReservationHandler{
+		Repo:        repo,
+		AuthService: authservice}
 }
 
 func (h *ReservationHandler) HandleReservation(w http.ResponseWriter, r *http.Request) {
@@ -77,4 +81,34 @@ func (h *ReservationHandler) HandleCancelReservation(w http.ResponseWriter, r *h
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 	}
+}
+
+func (h *ReservationHandler) HandleGetReservations(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Missing token", http.StatusUnauthorized)
+		return
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+	userID, err := h.AuthService.ExtractUserIDFromJWT(tokenString)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unauthorized: %v", err), http.StatusUnauthorized)
+		return
+	}
+
+	reservations, err := h.Repo.GetReservations(context.Background(), userID)
+	if err != nil {
+		http.Error(w, "Error fetching reservations", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(reservations)
 }
