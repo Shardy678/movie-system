@@ -112,3 +112,18 @@ func (h *ReservationHandler) HandleGetReservations(w http.ResponseWriter, r *htt
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(reservations)
 }
+
+func (h *ReservationHandler) HandleGetAllReservations(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+	reservations, err := h.Repo.GetAllReservations(context.Background())
+	if err != nil {
+		http.Error(w, "Error fetching reservations", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(reservations)
+}
