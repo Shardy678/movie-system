@@ -238,7 +238,8 @@ func (r *ReservationRepository) GetReservationsPerMovie(ctx context.Context, mov
 		SELECT 
 			m.id,
 			m.title,
-			COUNT(r.id) as reservation_count
+			COUNT(r.id) as reservation_count,
+			COALESCE(SUM(array_length(r.seats, 1)), 0) as total_seats
 		FROM movies m
 		LEFT JOIN reservations r ON m.id = r.movie_id
 		WHERE m.id = $1
@@ -254,7 +255,12 @@ func (r *ReservationRepository) GetReservationsPerMovie(ctx context.Context, mov
 	var results []models.MovieReservationCount
 	for rows.Next() {
 		var count models.MovieReservationCount
-		if err := rows.Scan(&count.MovieID, &count.MovieTitle, &count.ReservationCount); err != nil {
+		if err := rows.Scan(
+			&count.MovieID,
+			&count.MovieTitle,
+			&count.ReservationCount,
+			&count.SeatCount,
+		); err != nil {
 			return nil, fmt.Errorf("error scanning reservation count: %v", err)
 		}
 		results = append(results, count)

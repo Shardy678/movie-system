@@ -41,4 +41,5 @@ type MovieReservationCount struct {
 	MovieID          int    `json:"movie_id"`
 	MovieTitle       string `json:"movie_title"`
 	ReservationCount int    `json:"reservation_count"`
+	SeatCount        int    `json:"seat_count"`
 }
