@@ -12,12 +12,11 @@ type User struct {
 }
 
 type Movie struct {
-	ID          uint       `json:"id"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	Genre       string     `json:"genre"`
-	PosterImage string     `json:"poster_image"`
-	Showtime    []Showtime `json:"showtime"`
+	ID          uint   `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Genre       string `json:"genre"`
+	PosterImage string `json:"poster_image"`
 }
 
 type Reservation struct {

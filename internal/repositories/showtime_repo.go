@@ -6,7 +6,6 @@ import (
 	"log"
 	"movie-system/internal/models"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -27,34 +26,37 @@ func (repo *ShowtimeRepository) InsertShowtime(ctx context.Context, showtime *mo
 }
 
 func (repo *ShowtimeRepository) GetShowtimes(ctx context.Context) ([]models.Showtime, error) {
-	var rows pgx.Rows
-	var err error
-
-	rows, err = repo.DB.Query(ctx, `
-			SELECT id, movie_id, start_time, capacity, reserved
-			FROM showtimes`)
+	rows, err := repo.DB.Query(ctx, `
+		SELECT id, movie_id, start_time, capacity, reserved 
+		FROM showtimes`)
 	if err != nil {
 		log.Printf("error fetching showtimes: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("error fetching showtimes: %w", err)
 	}
 	defer rows.Close()
 
 	var showtimes []models.Showtime
 	for rows.Next() {
 		var showtime models.Showtime
-		if err := rows.Scan(&showtime.ID, &showtime.MovieID, &showtime.StartTime, &showtime.Capacity, &showtime.Reserved); err != nil {
+		if err := rows.Scan(
+			&showtime.ID,
+			&showtime.MovieID,
+			&showtime.StartTime,
+			&showtime.Capacity,
+			&showtime.Reserved,
+		); err != nil {
 			log.Printf("error scanning showtime: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("error scanning showtime: %w", err)
 		}
 		showtimes = append(showtimes, showtime)
 	}
 
 	if err := rows.Err(); err != nil {
 		log.Printf("error during rows iteration: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("error during rows iteration: %w", err)
 	}
 
-	return showtimes, err
+	return showtimes, nil
 }
 
 func (repo *ShowtimeRepository) UpdateShowtime(ctx context.Context, id int, showtime *models.Showtime) error {
