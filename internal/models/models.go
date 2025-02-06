@@ -36,3 +36,9 @@ type Showtime struct {
 	Capacity  uint      `json:"capacity"`
 	Reserved  uint      `json:"reserved"`
 }
+
+type MovieReservationCount struct {
+	MovieID          int    `json:"movie_id"`
+	MovieTitle       string `json:"movie_title"`
+	ReservationCount int    `json:"reservation_count"`
+}

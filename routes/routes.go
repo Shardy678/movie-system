@@ -25,8 +25,9 @@ func SetupRoutes(movieHandler *handlers.MovieHandler, showtimeHandler *handlers.
 	http.HandleFunc("/showtimes/seats/", showtimeHandler.HandleGetSeats)                                                    // GET /showtimes/seats/{id}
 
 	// Reservation routes
-	http.HandleFunc("/reserve/add", reservationHandler.HandleReservation)                                                    // POST /reserve/add
-	http.HandleFunc("/reserve/delete/", reservationHandler.HandleCancelReservation)                                          // DELETE /reserve/delete
-	http.HandleFunc("/reserve", reservationHandler.HandleGetReservations)                                                    // GET /reserve
-	http.Handle("/reserve/all", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetAllReservations))) // GET /reserve/all
+	http.HandleFunc("/reserve/add", reservationHandler.HandleReservation)                                                            // POST /reserve/add
+	http.HandleFunc("/reserve/delete/", reservationHandler.HandleCancelReservation)                                                  // DELETE /reserve/delete
+	http.HandleFunc("/reserve", reservationHandler.HandleGetReservations)                                                            // GET /reserve
+	http.Handle("/reserve/all", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetAllReservations)))         // GET /reserve/all
+	http.Handle("/reserve/movie/", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetReservationsPerMovie))) // GET /reserve/movie
 }

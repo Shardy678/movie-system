@@ -231,3 +231,34 @@ func (repo *ReservationRepository) GetAllReservations(ctx context.Context) ([]mo
 
 	return reservations, nil
 }
+
+// GetReservationsPerMovie returns the count of reservations for each movie
+func (r *ReservationRepository) GetReservationsPerMovie(ctx context.Context, movieID int) ([]models.MovieReservationCount, error) {
+	query := `
+		SELECT 
+			m.id,
+			m.title,
+			COUNT(r.id) as reservation_count
+		FROM movies m
+		LEFT JOIN reservations r ON m.id = r.movie_id
+		WHERE m.id = $1
+		GROUP BY m.id, m.title
+		ORDER BY reservation_count DESC`
+
+	rows, err := r.DB.Query(ctx, query, movieID)
+	if err != nil {
+		return nil, fmt.Errorf("error querying reservations per movie: %v", err)
+	}
+	defer rows.Close()
+
+	var results []models.MovieReservationCount
+	for rows.Next() {
+		var count models.MovieReservationCount
+		if err := rows.Scan(&count.MovieID, &count.MovieTitle, &count.ReservationCount); err != nil {
+			return nil, fmt.Errorf("error scanning reservation count: %v", err)
+		}
+		results = append(results, count)
+	}
+
+	return results, nil
+}

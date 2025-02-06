@@ -48,7 +48,8 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	reservationRepo := repositories.NewReservationRepository(config.DB)
-	reservationHandler := handlers.NewReservationHandler(reservationRepo, authService)
+	reservationService := services.NewReservationService(reservationRepo)
+	reservationHandler := handlers.NewReservationHandler(reservationRepo, authService, reservationService)
 
 	routes.SetupRoutes(movieHandler, showtimeHandler, authHandler, reservationHandler)
 

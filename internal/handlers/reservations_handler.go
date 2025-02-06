@@ -13,14 +13,17 @@ import (
 )
 
 type ReservationHandler struct {
-	Repo        *repositories.ReservationRepository
-	AuthService *services.AuthService
+	Repo               *repositories.ReservationRepository
+	AuthService        *services.AuthService
+	ReservationService *services.ReservationService
 }
 
-func NewReservationHandler(repo *repositories.ReservationRepository, authservice *services.AuthService) *ReservationHandler {
+func NewReservationHandler(repo *repositories.ReservationRepository, authservice *services.AuthService, reservationService *services.ReservationService) *ReservationHandler {
 	return &ReservationHandler{
-		Repo:        repo,
-		AuthService: authservice}
+		Repo:               repo,
+		AuthService:        authservice,
+		ReservationService: reservationService,
+	}
 }
 
 func (h *ReservationHandler) HandleReservation(w http.ResponseWriter, r *http.Request) {
@@ -126,4 +129,26 @@ func (h *ReservationHandler) HandleGetAllReservations(w http.ResponseWriter, r *
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(reservations)
+}
+
+func (h *ReservationHandler) HandleGetReservationsPerMovie(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+	movieIDStr := strings.TrimPrefix(r.URL.Path, "/reserve/movie/")
+	movieID, err := strconv.Atoi(movieIDStr)
+	if err != nil {
+		http.Error(w, "Invalid movie ID", http.StatusBadRequest)
+		return
+	}
+
+	counts, err := h.ReservationService.GetReservationsPerMovie(movieID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error fetching reservations per movie: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(counts)
 }
