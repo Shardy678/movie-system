@@ -152,3 +152,23 @@ func (h *ReservationHandler) HandleGetReservationsPerMovie(w http.ResponseWriter
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(counts)
 }
+
+func (h *ReservationHandler) HandleGetTotalRevenue(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	seatsReserved, revenue, totalRevenue, err := h.Repo.GetTotalRevenue(context.Background())
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error fetching total revenue: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"revenue":              revenue,
+		"total_seats_reserved": seatsReserved,
+		"total_revenue":        totalRevenue,
+	})
+}

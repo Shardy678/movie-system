@@ -30,4 +30,7 @@ func SetupRoutes(movieHandler *handlers.MovieHandler, showtimeHandler *handlers.
 	http.HandleFunc("/reserve", reservationHandler.HandleGetReservations)                                                            // GET /reserve
 	http.Handle("/reserve/all", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetAllReservations)))         // GET /reserve/all
 	http.Handle("/reserve/movie/", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetReservationsPerMovie))) // GET /reserve/movie
+
+	// Revenue routes
+	http.Handle("/revenue", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetTotalRevenue))) // GET /revenue
 }

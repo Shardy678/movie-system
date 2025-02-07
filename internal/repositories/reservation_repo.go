@@ -268,3 +268,47 @@ func (r *ReservationRepository) GetReservationsPerMovie(ctx context.Context, mov
 
 	return results, nil
 }
+
+// GetTotalRevenue returns the total revenue and seat count across all movies
+func (r *ReservationRepository) GetTotalRevenue(ctx context.Context) (int, map[string]int, int, error) {
+	query := `
+		SELECT 
+			m.title,
+			COALESCE(SUM(array_length(r.seats, 1)), 0) as seats_reserved,
+			COALESCE(SUM(array_length(r.seats, 1)), 0) * 5 as revenue
+		FROM movies m
+		LEFT JOIN reservations r ON m.id = r.movie_id
+		GROUP BY m.id, m.title
+		ORDER BY revenue DESC`
+
+	rows, err := r.DB.Query(ctx, query)
+	if err != nil {
+		return 0, nil, 0, fmt.Errorf("error querying total revenue: %v", err)
+	}
+	defer rows.Close()
+
+	revenues := make(map[string]int)
+	totalRevenue := 0
+	totalSeatsReserved := 0
+
+	for rows.Next() {
+		var (
+			movieTitle    string
+			seatsReserved int
+			revenue       int
+		)
+		if err := rows.Scan(&movieTitle, &seatsReserved, &revenue); err != nil {
+			return 0, nil, 0, fmt.Errorf("error scanning revenue data: %v", err)
+		}
+
+		revenues[movieTitle] = revenue
+		totalRevenue += revenue
+		totalSeatsReserved += seatsReserved
+	}
+
+	if err := rows.Err(); err != nil {
+		return 0, nil, 0, fmt.Errorf("error during rows iteration: %v", err)
+	}
+
+	return totalSeatsReserved, revenues, totalRevenue, nil
+}
