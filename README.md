@@ -1,44 +1,112 @@
-# Movie Reservation Service
+# Бэкенд системы бронирования фильмов
 
-## Overview
+## Обзор
+Бэкенд-сервис на Go для системы бронирования фильмов, который обрабатывает аутентификацию пользователей, управление фильмами, расписание сеансов и бронирование мест.
 
-The Movie Reservation Service is a backend system designed to facilitate user authentication, movie management, seat reservation, and reporting for a movie reservation platform. This service allows users to sign up, log in, browse movies, reserve seats for specific movies. Admins have additional privileges to manage movies.
+## Фичи
 
-## Goals
+### Аутентификация и авторизация
+- Регистрация и вход пользователей
+- Аутентификация на основе JWT
+- Контроль доступа на основе ролей (админ/юзер)
+- Привилегии администратора для управления системой
 
-The primary goal of this project is to implement complex business logic related to seat reservation and scheduling, while also understanding data models, relationships, and complex queries.
+### Управление фильмами
+- Получение списка, создание, обновление и удаление фильмов
+- Информация фильма включает в себя название, описание, жанр и постер
 
-## Features
+### Управление сеансами
+- Расписание сеансов фильмов
+- Отслеживание вместимости и бронирования мест
+- Просмотр доступных мест для каждого сеанса
 
-- **User Authentication and Authorization**
-  - User sign-up and login functionality.
-  - Role-based access control (admin and regular user).
-  - Admins can promote users to admin and manage movies.
-  - Use JWT for secure user authentication and role-based access control.
+### Система бронирования
+- Бронирование мест на конкретные сеансы
+- Отмена бронирования
+- Просмотр истории бронирований пользователя
+- Предотвращение двойного бронирования мест
+- Отслеживание общего количества забронированных мест
 
-- **Movie Management**
-  - Admins can add, update, and delete movies.
-  - Movies have attributes such as title, description, poster image, and genre.
-  - Movies are associated with showtimes.
-  - Design a relational database schema to represent movies and their relationships.
+### Мониторинг дохода
+- Расчет дохода за каждый фильм
+- Отслеживание общего дохода системы
+- Мониторинг заполняемости мест
 
-- **Reservation Management**
-  - Users can view movies and their showtimes for a specific date.
-  - Users can reserve seats for a showtime and see available seats.
-  - Users can view and cancel their upcoming reservations.
-  - Admins can view all reservations, capacity, and revenue.
-  - Implement logic to avoid overbooking and handle seat reservations effectively.
-  - Manage the scheduling of showtimes to ensure accurate availability.
+## API-эндпоинты
 
-- **Reporting**
-  - Provide reporting features for admins to view reservations, capacity, and revenue.
+### Аутентификация
+- `POST /auth/signup` - Регистрация нового пользователя
+- `POST /auth/login` - Вход пользователя
 
+### Фильмы
+- `GET /movies` - Список всех фильмов
+- `POST /movies/add` - Добавление нового фильма (Администратор)
+- `PUT /movies/update/{id}` - Обновление фильма (Администратор)
+- `DELETE /movies/delete/{id}` - Удаление фильма (Администратор)
 
-## Technologies Used
+### Сеансы
+- `GET /showtimes` - Список всех сеансов
+- `POST /showtimes/add` - Добавление нового сеанса (Администратор)
+- `PUT /showtimes/update/{id}` - Обновление сеанса (Администратор)
+- `DELETE /showtimes/delete/{id}` - Удаление сеанса (Администратор)
+- `GET /showtimes/seats/{id}` - Получение доступных мест
 
-- **Programming Language:** Go
-- **Database:** PostgreSQL
-- **Authentication:** JWT
-- **Password Hashing:** bcrypt
-- **Environment Management:** godotenv
+### Бронирования
+- `POST /reserve/add` - Создание бронирования
+- `DELETE /reserve/delete/{id}` - Отмена бронирования
+- `GET /reserve` - Получение бронирований пользователя
+- `GET /reserve/all` - Получение всех бронирований (Администратор)
+- `GET /reserve/movie/{id}` - Получение бронирований по фильму (Администратор)
 
+### Доходы
+- `GET /revenue` - Получение статистики общего дохода (Администратор)
+
+## Технологический стек
+- Язык: Go
+- База данных: PostgreSQL
+- Аутентификация: JWT
+- Хеширование паролей: bcrypt
+
+## Настройка
+
+1. Установите зависимости:
+
+```bash
+go mod tidy
+```
+
+2. Создайте файл `.env` в корневой директории со следующими переменными:
+
+```bash
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=postgres
+```
+
+3. Запустите сервер:
+
+```bash
+go run main.go
+```
+
+## Схема базы данных
+Система использует PostgreSQL с таблицами:
+- users (id, username, password_hash, role)
+- movies (id, title, description, genre, poster_image)
+- showtimes (id, movie_id, start_time, capacity, reserved)
+- reservations (id, user_id, movie_id, showtime_id, seats)
+
+## Функции безопасности
+- Хеширование паролей с использованием bcrypt
+- Аутентификация на основе JWT
+- Контроль доступа на основе ролей
+- Защищенные маршруты для администратора
+
+## Тестирование
+Запустите тесты с помощью:
+
+```bash
+go test
+```
