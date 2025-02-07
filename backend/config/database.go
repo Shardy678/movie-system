@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -11,7 +12,12 @@ import (
 var DB *pgxpool.Pool
 
 func InitDB() (*pgxpool.Pool, error) {
-	connStr := "postgres://nosweat:password@localhost:5432/movie_system"
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
 
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
