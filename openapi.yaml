@@ -1,0 +1,463 @@
+openapi: 3.0.0
+info:
+  title: Movie Reservation API
+  version: 1.0.0
+  description: API for managing movies, showtimes, reservations, and user authentication.
+
+servers:
+  - url: http://localhost:8080
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+          example: "john_doe"
+        password_hash:
+          type: string
+          example: "password"
+        role:
+          type: string
+          example: "user"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T12:00:00Z"
+
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          example: "Inception"
+        description:
+          type: string
+          example: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O., but his tragic past may doom the project and his team to disaster."
+        genre:
+          type: string
+          example: "Sci-Fi"
+        poster_image:
+          type: string
+          example: "https://cdn.com/poster-image.jpg"
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        movie_id:
+          type: integer
+        showtime_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-01T14:30:00Z"
+        seats:
+          type: array
+          items:
+            type: string
+            example: "A1"
+      required:
+        - user_id
+        - movie_id
+        - showtime_id
+        - seats
+
+    Showtime:
+      type: object
+      properties:
+        id:
+          type: integer
+        movie_id:
+          type: integer
+        start_time:
+          type: string
+          format: date-time
+          example: "2023-10-01T14:30:00Z"
+        capacity:
+          type: integer
+          example: 100
+        reserved:
+          type: integer
+          example: 50
+
+    MovieReservationCount:
+      type: object
+      properties:
+        movie_id:
+          type: integer
+        movie_title:
+          type: string
+          example: "Inception"
+        reservation_count:
+          type: integer
+          example: 150
+        seat_count:
+          type: integer
+          example: 300
+
+security:
+  - bearerAuth: []
+
+paths:
+  /movies:
+    get:
+      tags:
+        - Movies
+      summary: Get all movies
+      description: Gets all of the movies existing in the database.
+      operationId: getMovies
+      responses:
+        '200':
+          description: A list of movies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+
+  /movies/add:
+    post:
+      tags:
+        - Movies
+      summary: Add a new movie
+      operationId: addMovie
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movie'
+      responses:
+        '201':
+          description: Movie added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '405':
+          description: Invalid request method
+        '400':
+          description: Invalid JSON payload
+
+  /movies/update/{id}:
+    put:
+      tags:
+        - Movies
+      summary: Update an existing movie
+      operationId: updateMovie
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the movie to update
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movie'
+      responses:
+        '200':
+          description: Movie updated successfully
+        '405':
+          description: Invalid request method
+        '400':
+          description: Invalid input
+        '500':
+          description: Failed to update movie
+
+  /movies/delete/{id}:
+    delete:
+      tags:
+        - Movies
+      summary: Delete a movie
+      operationId: deleteMovie
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the movie to delete
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Movie deleted
+        '403':
+          description: Forbidden
+        '404':
+          description: Movie not found
+
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: User signup
+      operationId: signUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Bad request
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: User login
+      operationId: logIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User logged in
+        '401':
+          description: Unauthorized
+
+  /showtimes:
+    get:
+      tags:
+        - Showtimes
+      summary: Get all showtimes
+      operationId: getShowtimes
+      responses:
+        '200':
+          description: A list of showtimes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Showtime'
+
+  /showtimes/add:
+    post:
+      tags:
+        - Showtimes
+      summary: Add a new showtime
+      operationId: addShowtime
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                movie_id:
+                  type: integer
+                start_time:
+                  type: string
+                  format: date-time
+                capacity:
+                  type: integer
+      responses:
+        '201':
+          description: Showtime created
+        '403':
+          description: Forbidden
+
+  /reserve/add:
+    post:
+      tags:
+        - Reservations
+      summary: Add a new reservation
+      description: Creates a new reservation for a user. This endpoint is restricted to users with the "user" role.
+      operationId: addReservation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reservation'
+      responses:
+        '201':
+          description: Reservation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          description: Bad request, invalid input
+        '403':
+          description: Forbidden, user does not have permission
+        '500':
+          description: Internal server error
+
+  /reserve/delete/{id}:
+    delete:
+      tags:
+        - Reservations
+      summary: Cancel a reservation
+      description: Cancels an existing reservation by ID.
+      operationId: cancelReservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the reservation to cancel
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Reservation canceled successfully
+        '404':
+          description: Reservation not found
+        '500':
+          description: Internal server error
+
+  /reserve:
+    get:
+      tags:
+        - Reservations
+      summary: Get all reservations for the user
+      description: Retrieves all reservations made by the authenticated user.
+      operationId: getUserReservations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'a
+        '500':
+          description: Internal server error
+
+  /reserve/all:
+    get:
+      tags:
+        - Reservations
+      summary: Get all reservations
+      description: Retrieves all reservations in the system. This endpoint is restricted to users with the "admin" role.
+      operationId: getAllReservations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of all reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '403':
+          description: Forbidden, user does not have permission
+        '500':
+          description: Internal server error
+
+  /reserve/movie/{movieId}:
+    get:
+      tags:
+        - Reservations
+      summary: Get reservations for a specific movie
+      description: Retrieves all reservations for a specific movie. This endpoint is restricted to users with the "admin" role.
+      operationId: getReservationsPerMovie
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          description: ID of the movie to get reservations for
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of reservations for the specified movie
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '403':
+          description: Forbidden, user does not have permission
+        '404':
+          description: Movie not found
+        '500':
+          description: Internal server error
+
+  /revenue:
+    get:
+      tags:
+        - Revenue
+      summary: Get total revenue
+      description: Retrieves the total revenue generated from reservations. This endpoint is restricted to users with the "admin" role.
+      operationId: getTotalRevenue
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Total revenue retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_revenue:
+                    type: number
+                    format: float
+                    example: 1500.75
+        '403':
+          description: Forbidden, user does not have permission
+        '500':
+          description: Internal server error
+
