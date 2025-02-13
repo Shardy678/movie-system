@@ -21,11 +21,11 @@ func init() {
 	prometheus.MustRegister(RequestsTotal)
 }
 
-func RequestCounter(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func RequestCounter(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		RequestsTotal.WithLabelValues(r.Method, r.URL.Path).Inc()
 		next.ServeHTTP(w, r)
-	}
+	})
 }
 
 func MetricsHandler() http.Handler {
