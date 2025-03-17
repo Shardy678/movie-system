@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"movie-system/config"
@@ -11,6 +12,7 @@ import (
 	"movie-system/routes"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -31,6 +33,10 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer config.DB.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	config.Ping(ctx)
 
 	if err := seed.SeedDatabase(); err != nil {
 		log.Fatalf("failed to seed database: %v", err)
