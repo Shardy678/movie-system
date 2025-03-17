@@ -6,6 +6,7 @@ import (
 	"log"
 	"movie-system/config"
 	"movie-system/internal/handlers"
+	"movie-system/internal/middleware"
 	"movie-system/internal/repositories"
 	"movie-system/internal/seed"
 	"movie-system/internal/services"
@@ -54,6 +55,8 @@ func main() {
 
 	routes.SetupRoutes(movieHandler, showtimeHandler, authHandler, reservationHandler)
 
+	corsHandler := middleware.CORS(http.DefaultServeMux.ServeHTTP)
+
 	fmt.Println("Server running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", http.HandlerFunc(corsHandler)))
 }
