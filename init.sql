@@ -1,0 +1,33 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS movies (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT,
+    genre VARCHAR(100),
+    poster_image TEXT
+);
+
+CREATE TABLE IF NOT EXISTS showtimes (
+    id SERIAL PRIMARY KEY,
+    movie_id INTEGER REFERENCES movies(id) ON DELETE CASCADE,
+    start_time TIMESTAMP NOT NULL,
+    capacity INTEGER NOT NULL,
+    reserved INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS reservations (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    movie_id INTEGER REFERENCES movies(id) ON DELETE CASCADE,
+    showtime_id INTEGER REFERENCES showtimes(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    seats TEXT[] 
+);

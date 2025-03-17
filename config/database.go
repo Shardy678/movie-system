@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,8 +13,14 @@ import (
 var DB *pgxpool.Pool
 
 func InitDB() (*pgxpool.Pool, error) {
-	connStr := "postgres://nosweat:password@localhost:5432/movie_system"
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
 
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		dbUser, dbPassword, dbHost, dbPort, dbName)
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse connection string: %w", err)

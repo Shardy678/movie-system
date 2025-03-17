@@ -13,14 +13,9 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	jwtSecret := os.Getenv("SECRET_KEY")
 	if jwtSecret == "" {

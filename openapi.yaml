@@ -95,7 +95,7 @@ components:
           example: "2023-10-01T14:30:00Z"
         capacity:
           type: integer
-          example: 100
+          example: "100"
         reserved:
           type: integer
           example: 50

@@ -5,7 +5,6 @@ go 1.23.5
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/jackc/pgx/v5 v5.5.5
-	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.32.0

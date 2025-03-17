@@ -67,28 +67,64 @@
 - Аутентификация: JWT
 - Хеширование паролей: bcrypt
 
-## Настройка
+## Запуск
 
-1. Установите зависимости:
+1. Убедитесь, что установлен Docker
+Перед началом работы убедитесь, что у вас установлены Docker и Docker Compose.
 
+2. Клонируйте репозиторий
 ```bash
-go mod tidy
+git clone https://github.com/Shardy678/movie-system.git
+cd movie-system
 ```
 
-2. Создайте файл `.env` в корневой директории со следующими переменными:
+3. Запустите проект
 
 ```bash
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=postgres
+docker-compose up --build
 ```
 
-3. Запустите сервер:
-
+4. Остановка контейнеров
+Чтобы остановить контейнеры, выполните команду:
 ```bash
-go run main.go
+docker-compose down
+```
+
+## Пример использования
+1. Авторизация:
+```json
+POST localhost:8080/auth/login
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+В ответе будет получет jwt токен. Его нужно будет добавить в заголовок Authorization.
+
+2. Получение списка фильмов:
+```json
+GET localhost:8080/movies
+Authorization: Bearer <вставить_токен_сюда>
+```
+
+3. Добавление сеанса:
+```json
+POST localhost:8080/showtimes/add
+Content-Type: application/json
+Authorization: Bearer <вставить_токен_сюда>
+
+{
+  "movie_id": 1,
+  "start_time": "2025-03-17T07:33:52.991Z",
+  "capacity": 10
+}
+```
+
+4. Получение всех сеансов:
+```
+GET localhost:8080/showtimes
+Authorization: Bearer <вставить_токен_сюда>
 ```
 
 ## Схема базы данных
@@ -108,5 +144,5 @@ go run main.go
 Запустите тесты с помощью:
 
 ```bash
-go test
+docker-compose exec app go test ./...
 ```
