@@ -15,7 +15,7 @@ function LoginForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password_hash: password }),
+        body: JSON.stringify({ username, password: password }),
       })
       const data = await response.json()
       if (response.ok) {

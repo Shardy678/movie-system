@@ -2,11 +2,13 @@ FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+# Copy the Go module files from the backend directory
+COPY backend/go.mod backend/go.sum ./
 
 RUN go mod download
 
-COPY . .
+# Copy the rest of the backend source files
+COPY backend ./
 
 RUN go build -o main .
 

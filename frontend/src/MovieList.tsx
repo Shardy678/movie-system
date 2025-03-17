@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import styles from './MovieList.module.css';
 
 interface Movie {
@@ -12,14 +13,30 @@ interface Movie {
 function MovieList() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [error, setError] = useState<string>('');
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await fetch('http://localhost:8080/movies');
+        const token = localStorage.getItem('token');
+        
+
+        if (!token) {
+          navigate('/login'); 
+          return;
+        }
+
+        const response = await fetch('http://localhost:8080/movies', {
+          headers: {
+            'Authorization': `Bearer ${token}`, 
+            'Content-Type': 'application/json'
+          }
+        });
+
         if (!response.ok) {
           throw new Error('Failed to fetch movies');
         }
+
         const data = await response.json();
         setMovies(data);
       } catch (err) {
@@ -28,7 +45,7 @@ function MovieList() {
     };
 
     fetchMovies();
-  }, []);
+  }, [navigate]); 
 
   if (error) {
     return <div>Error: {error}</div>;

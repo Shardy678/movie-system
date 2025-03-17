@@ -60,7 +60,15 @@ func (h *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	token, err := h.service.LogIn(context.Background(), loginData.Username, loginData.Password)
 	if err != nil {
 		log.Printf("Authentication failed for user %s: %v", loginData.Username, err)
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+
+		response := map[string]string{
+			"error": "Invalid credentials",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
