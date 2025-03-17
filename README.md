@@ -92,7 +92,7 @@ docker-compose down
 
 ## Пример использования
 1. Авторизация:
-```json
+```bash
 POST localhost:8080/auth/login
 
 {
@@ -103,13 +103,13 @@ POST localhost:8080/auth/login
 В ответе будет получет jwt токен. Его нужно будет добавить в заголовок Authorization.
 
 2. Получение списка фильмов:
-```json
+```bash
 GET localhost:8080/movies
 Authorization: Bearer <вставить_токен_сюда>
 ```
 
 3. Добавление сеанса:
-```json
+```bash
 POST localhost:8080/showtimes/add
 Content-Type: application/json
 Authorization: Bearer <вставить_токен_сюда>
