@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -35,4 +36,15 @@ func InitDB() (*pgxpool.Pool, error) {
 
 	log.Println("Successfully connected to the database")
 	return db, nil
+}
+
+func Ping(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	if err := DB.Ping(ctx); err != nil {
+		log.Fatalf("unable to connect to database: %v", err)
+	}
+
+	log.Println("Database connection is healthy")
 }

@@ -3,34 +3,43 @@ package routes
 import (
 	"movie-system/internal/auth"
 	"movie-system/internal/handlers"
+	"movie-system/metrics"
 	"net/http"
 )
 
-func SetupRoutes(movieHandler *handlers.MovieHandler, showtimeHandler *handlers.ShowtimeHandler, authHandler *handlers.AuthHandler, reservationHandler *handlers.ReservationHandler) {
+func SetupRoutes(mh *handlers.MovieHandler, sh *handlers.ShowtimeHandler, ah *handlers.AuthHandler, rh *handlers.ReservationHandler) {
+	// Middleware chain function
+	middleware := func(role string, handlerFunc http.HandlerFunc) http.Handler {
+		return metrics.RequestCounter(auth.RoleMiddleware(role, handlerFunc))
+	}
+
 	// Movie routes
-	http.HandleFunc("/movies", movieHandler.HandleGetMovies)                                                       // GET /movies
-	http.Handle("/movies/add", auth.RoleMiddleware("admin", http.HandlerFunc(movieHandler.HandleAddMovie)))        // POST /movies/add
-	http.Handle("/movies/update/", auth.RoleMiddleware("admin", http.HandlerFunc(movieHandler.HandleUpdateMovie))) // PUT /movies/update/{id}
-	http.Handle("/movies/delete/", auth.RoleMiddleware("admin", http.HandlerFunc(movieHandler.HandleDeleteMovie))) // DELETE /movies/delete/{id}
+	http.Handle("/movies", middleware("user", http.HandlerFunc(mh.HandleGetMovies)))
+	http.Handle("/movies/add", middleware("admin", mh.HandleAddMovie))
+	http.Handle("/movies/update/", middleware("admin", mh.HandleUpdateMovie))
+	http.Handle("/movies/delete/", middleware("admin", mh.HandleDeleteMovie))
 
 	// User routes
-	http.HandleFunc("/auth/signup", authHandler.SignUp) // POST /auth/signup
-	http.HandleFunc("/auth/login", authHandler.LogIn)   // POST /auth/login
+	http.Handle("/auth/signup", middleware("user", http.HandlerFunc(ah.SignUp)))
+	http.Handle("/auth/login", http.HandlerFunc(ah.LogIn))
 
 	// Showtime routes
-	http.HandleFunc("/showtimes", showtimeHandler.HandleGetShowtimes)                                                       // GET /showtimes
-	http.Handle("/showtimes/add", auth.RoleMiddleware("admin", http.HandlerFunc(showtimeHandler.HandleAddShowtime)))        // POST /showtimes/add
-	http.Handle("/showtimes/update/", auth.RoleMiddleware("admin", http.HandlerFunc(showtimeHandler.HandleUpdateShowtime))) // PUT /showtimes/update/{id}
-	http.Handle("/showtimes/delete/", auth.RoleMiddleware("admin", http.HandlerFunc(showtimeHandler.HandleDeleteShowtime))) // DELETE /showtimes/delete/{id}
-	http.HandleFunc("/showtimes/seats/", showtimeHandler.HandleGetSeats)                                                    // GET /showtimes/seats/{id}
+	http.Handle("/showtimes", middleware("user", sh.HandleGetShowtimes))
+	http.Handle("/showtimes/add", middleware("admin", sh.HandleAddShowtime))
+	http.Handle("/showtimes/update/", middleware("admin", sh.HandleUpdateShowtime))
+	http.Handle("/showtimes/delete/", middleware("admin", sh.HandleDeleteShowtime))
+	http.Handle("/showtimes/seats/", middleware("user", sh.HandleGetSeats))
 
 	// Reservation routes
-	http.Handle("/reserve/add", auth.RoleMiddleware("user", http.HandlerFunc(reservationHandler.HandleReservation)))                 // POST /reserve/add
-	http.HandleFunc("/reserve/delete/", reservationHandler.HandleCancelReservation)                                                  // DELETE /reserve/delete
-	http.HandleFunc("/reserve", reservationHandler.HandleGetReservations)                                                            // GET /reserve
-	http.Handle("/reserve/all", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetAllReservations)))         // GET /reserve/all
-	http.Handle("/reserve/movie/", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetReservationsPerMovie))) // GET /reserve/movie
+	http.Handle("/reserve/add", middleware("user", rh.HandleReservation))
+	http.Handle("/reserve/delete/", middleware("user", rh.HandleCancelReservation))
+	http.Handle("/reserve", middleware("user", rh.HandleGetReservations))
+	http.Handle("/reserve/all", middleware("admin", rh.HandleGetAllReservations))
+	http.Handle("/reserve/movie/", middleware("admin", rh.HandleGetReservationsPerMovie))
 
 	// Revenue routes
-	http.Handle("/revenue", auth.RoleMiddleware("admin", http.HandlerFunc(reservationHandler.HandleGetTotalRevenue))) // GET /revenue
+	http.Handle("/revenue", middleware("admin", rh.HandleGetTotalRevenue))
+
+	// Metrics routes
+	http.Handle("/metrics", metrics.MetricsHandler())
 }

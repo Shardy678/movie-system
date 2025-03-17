@@ -46,7 +46,7 @@ func RoleMiddleware(requiredRole string, next http.Handler) http.Handler {
 			return
 		}
 
-		if claims.Role != requiredRole {
+		if claims.Role != requiredRole && claims.Role != "admin" {
 			http.Error(w, "Forbidden: Insufficient permissions", http.StatusForbidden)
 			return
 		}

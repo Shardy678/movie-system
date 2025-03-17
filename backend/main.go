@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"movie-system/config"
@@ -12,14 +13,10 @@ import (
 	"movie-system/routes"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
+	"time"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	jwtSecret := os.Getenv("SECRET_KEY")
 	if jwtSecret == "" {
@@ -32,6 +29,10 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer config.DB.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	config.Ping(ctx)
 
 	if err := seed.SeedDatabase(); err != nil {
 		log.Fatalf("failed to seed database: %v", err)
