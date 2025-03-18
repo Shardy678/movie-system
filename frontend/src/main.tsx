@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<App />} />
         <Route path="/login" element={<LoginPage isLogin={true} />} />
         <Route path="/register" element={<LoginPage isLogin={false} />} />
-        <Route path="/admin/movies/add" element={<NewMovie />} />
+        <Route path="/movies/new" element={<NewMovie />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
