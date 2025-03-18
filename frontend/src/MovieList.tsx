@@ -59,6 +59,34 @@ function MovieList() {
     return <div>Error: {error}</div>;
   }
 
+  async function handleDelete(movieID: number) {
+    const token = localStorage.getItem('token'); 
+  
+    if (!token) {
+      console.error('No token found, user might not be authenticated.');
+      return;
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:8080/movies/delete/${movieID}`, {
+        method: 'DELETE', 
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete the movie');
+      }
+  
+      setMovies(prevMovies => prevMovies.filter(movie => movie.id !== movieID));
+    } catch (error) {
+      console.error('Error deleting movie:', error);
+    }
+  }
+  
+
   return (
     <div>
       <header>
@@ -76,7 +104,12 @@ function MovieList() {
         {movies.map((movie) => (
           <div key={movie.id} className={styles.movieCard}>
             <img src={movie.poster_image} alt={movie.title} />
-            <h2>{movie.title}</h2>
+            <div className={styles.movieTitle}>
+              <h2>{movie.title}</h2>
+              <button className={styles.deleteButton} onClick={() => handleDelete(movie.id)}>
+                <i className="fas fa-trash"></i>
+              </button>
+            </div>
             <p>{movie.description}</p>
             <p>Genre: {movie.genre}</p>
           </div>
