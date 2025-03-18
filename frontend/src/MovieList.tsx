@@ -106,9 +106,9 @@ function MovieList() {
             <img src={movie.poster_image} alt={movie.title} />
             <div className={styles.movieTitle}>
               <h2>{movie.title}</h2>
-              <button className={styles.deleteButton} onClick={() => handleDelete(movie.id)}>
+              {isAdmin && <button className={styles.deleteButton} onClick={() => handleDelete(movie.id)}>
                 <i className="fas fa-trash"></i>
-              </button>
+              </button>}
             </div>
             <p>{movie.description}</p>
             <p>Genre: {movie.genre}</p>
