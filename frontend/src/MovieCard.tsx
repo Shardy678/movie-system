@@ -86,7 +86,6 @@ function MovieCard({
           <Button
             variant="ghost"
             size="icon"
-            className="cursor-pointer"
             onClick={() => onDelete(movie.id)}
           >
             <Trash className="h-4 w-4" />
@@ -109,7 +108,7 @@ function MovieCard({
             <Button
               variant="ghost"
               size="sm"
-              className="px-4 py-2 cursor-pointer h-auto mb-2 font-normal"
+              className="px-4 py-2 h-auto mb-2 font-normal"
               onClick={() => onAddShowtime(movie.id)}
             >
               <Plus className="h-3.5 w-3.5 mr-1" />

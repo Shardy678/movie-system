@@ -38,7 +38,7 @@ func (h *MovieHandler) HandleAddMovie(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Movie added successfully"})
+	json.NewEncoder(w).Encode(movie)
 }
 
 func (h *MovieHandler) HandleGetMovies(w http.ResponseWriter, r *http.Request) {

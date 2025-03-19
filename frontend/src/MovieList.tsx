@@ -1,17 +1,32 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 import { useMoviesAndShowtimes } from "./useMoviesAndShowtimes";
-import { useNavigate } from "react-router-dom";
 import ShowtimeForm from "./ShowtimeForm";
 import MovieCard from "./MovieCard";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { NewMovieForm } from "./NewMovieForm";
 
 function MovieList() {
   const [showForm, setShowForm] = useState<boolean>(false);
+  const [showNewMovieDialog, setShowNewMovieDialog] = useState<boolean>(false);
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const { isAdmin, token } = useAuth();
   const { movies, showtimes, setShowtimes, setMovies, error } =
     useMoviesAndShowtimes(token);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log("Updated movies state:", movies);
+  }, [movies]);
+    
 
   async function deleteMovie(movieId: number) {
     if (!token) {
@@ -74,8 +89,16 @@ function MovieList() {
     }
   }
 
+  const handleAddMovie = (newMovie: any) => {
+    console.log("New movie added:", newMovie); 
+    setMovies((prev) => [...prev, newMovie]);
+    setShowNewMovieDialog(false);
+  };
+
   if (error) {
-    return <div className="text-red-500 text-center mt-4">Error loading movies.</div>;
+    return (
+      <div className="text-red-500 text-center mt-4">Error loading movies.</div>
+    );
   }
 
   return (
@@ -83,12 +106,9 @@ function MovieList() {
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Movies</h1>
         {isAdmin && (
-          <button
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-            onClick={() => navigate("/movies/new")}
-          >
+          <Button onClick={() => setShowNewMovieDialog(true)}>
             Add New Movie
-          </button>
+          </Button>
         )}
       </header>
       {movies.length === 0 ? (
@@ -110,6 +130,7 @@ function MovieList() {
           ))}
         </div>
       )}
+
       {showForm && selectedMovieId !== null && (
         <ShowtimeForm
           movieId={selectedMovieId}
@@ -117,6 +138,21 @@ function MovieList() {
           onAddShowtime={addShowtime}
         />
       )}
+
+      <Dialog open={showNewMovieDialog} onOpenChange={setShowNewMovieDialog}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Add New Movie</DialogTitle>
+            <DialogDescription>
+              Enter the details of the movie you want to add to the database.
+            </DialogDescription>
+          </DialogHeader>
+          <NewMovieForm
+            onSuccess={handleAddMovie}
+            onCancel={() => setShowNewMovieDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
