@@ -49,8 +49,15 @@ const groupShowtimesByDate = (showtimes: Showtime[]): GroupedShowtimes =>
     return acc;
   }, {} as GroupedShowtimes);
 
-function MovieCard({ movie, showtimes, isAdmin, onDelete, onAddShowtime }: MovieCardProps) {
-  const movieShowtimes = showtimes.filter((showtime) => showtime.movie_id === movie.id);
+function MovieCard({
+  movie,
+  showtimes,
+  isAdmin,
+  onDelete,
+  onAddShowtime,
+}: MovieCardProps) {
+  const movieShowtimes =
+    showtimes?.filter((showtime) => showtime.movie_id === movie.id) || [];
   const groupedShowtimes = groupShowtimesByDate(movieShowtimes);
 
   return (
@@ -59,7 +66,10 @@ function MovieCard({ movie, showtimes, isAdmin, onDelete, onAddShowtime }: Movie
       <div className={styles.movieTitle}>
         <h2>{movie.title}</h2>
         {isAdmin && (
-          <button className={styles.deleteButton} onClick={() => onDelete(movie.id)}>
+          <button
+            className={styles.deleteButton}
+            onClick={() => onDelete(movie.id)}
+          >
             <i className="fas fa-trash"></i>
           </button>
         )}
@@ -67,6 +77,14 @@ function MovieCard({ movie, showtimes, isAdmin, onDelete, onAddShowtime }: Movie
       <p>{movie.description}</p>
       <p>Genre: {movie.genre}</p>
       <div className={styles.showtimes}>
+        {isAdmin && (
+          <button
+            className={styles.addShowtimeButton}
+            onClick={() => onAddShowtime(movie.id)}
+          >
+            + Add Showtime
+          </button>
+        )}
         <h4 className={styles.showtimeHeading}>Showtimes:</h4>
         {Object.keys(groupedShowtimes).length > 0 ? (
           Object.entries(groupedShowtimes).map(([date, dateShowtimes]) => (
@@ -85,11 +103,6 @@ function MovieCard({ movie, showtimes, isAdmin, onDelete, onAddShowtime }: Movie
           <p className={styles.noShowtimes}>No showtimes available</p>
         )}
       </div>
-      {isAdmin && (
-        <button className={styles.addShowtimeButton} onClick={() => onAddShowtime(movie.id)}>
-          + Add Showtime
-        </button>
-      )}
     </div>
   );
 }

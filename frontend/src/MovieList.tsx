@@ -45,6 +45,7 @@ function MovieList() {
     start_time: string;
     capacity: number;
   }) {
+    console.log("New Showtime object:", newShowtime);
     if (!token) {
       console.error("No token found, user might not be authenticated.");
       return;
@@ -58,16 +59,23 @@ function MovieList() {
         },
         body: JSON.stringify(newShowtime),
       });
+  
       if (!response.ok) {
         throw new Error("Failed to add showtime");
       }
+  
       const addedShowtime = await response.json();
-      setShowtimes((prev) => [...prev, addedShowtime]);
+  
+      setShowtimes((prevShowtimes) => [
+        ...(Array.isArray(prevShowtimes) ? prevShowtimes : []),
+        addedShowtime,
+      ]);  
       setShowForm(false);
     } catch (error) {
       console.error("Error adding showtime:", error);
     }
   }
+  
 
   if (error) {
     return <div>Error</div>;
