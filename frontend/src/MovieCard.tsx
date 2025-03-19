@@ -1,4 +1,14 @@
-import styles from "./MovieList.module.css";
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Trash } from "lucide-react";
 
 interface Showtime {
   movie_id: number;
@@ -27,7 +37,6 @@ interface MovieCardProps {
   onAddShowtime: (movieId: number) => void;
 }
 
-// Utility functions for formatting
 const formatDate = (dateString: string): string =>
   new Date(dateString).toLocaleDateString([], {
     weekday: "long",
@@ -61,49 +70,81 @@ function MovieCard({
   const groupedShowtimes = groupShowtimesByDate(movieShowtimes);
 
   return (
-    <div className={styles.movieCard}>
-      <img src={movie.poster_image || "/placeholder.svg"} alt={movie.title} />
-      <div className={styles.movieTitle}>
-        <h2>{movie.title}</h2>
+    <Card className="overflow-hidden p-0">
+      <div
+        className="relative w-full h-[375px] bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${
+            movie.poster_image || "/placeholder.svg?height=375&width=250"
+          })`,
+        }}
+      ></div>
+
+      <CardHeader className="flex flex-row items-center justify-between px-4 space-y-0">
+        <h2 className="text-xl font-semibold">{movie.title}</h2>
         {isAdmin && (
-          <button
-            className={styles.deleteButton}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="cursor-pointer"
             onClick={() => onDelete(movie.id)}
           >
-            <i className="fas fa-trash"></i>
-          </button>
+            <Trash className="h-4 w-4" />
+          </Button>
         )}
-      </div>
-      <p>{movie.description}</p>
-      <p>Genre: {movie.genre}</p>
-      <div className={styles.showtimes}>
-        {isAdmin && (
-          <button
-            className={styles.addShowtimeButton}
-            onClick={() => onAddShowtime(movie.id)}
-          >
-            + Add Showtime
-          </button>
-        )}
-        <h4 className={styles.showtimeHeading}>Showtimes:</h4>
-        {Object.keys(groupedShowtimes).length > 0 ? (
-          Object.entries(groupedShowtimes).map(([date, dateShowtimes]) => (
-            <div key={date} className={styles.showtimeDate}>
-              <h5>{date}</h5>
-              <div className={styles.showtimeContainer}>
-                {dateShowtimes.map((showtime, index) => (
-                  <button key={index} className={styles.showtimeButton}>
-                    {formatTime(showtime.start_time)}
-                  </button>
-                ))}
+      </CardHeader>
+
+      <CardContent className="px-4 pb-2 space-y-2">
+        <p className="text-sm text-muted-foreground">{movie.description}</p>
+        <p className="text-sm text-muted-foreground italic">
+          Genre: {movie.genre}
+        </p>
+      </CardContent>
+
+      <Separator />
+
+      <CardFooter className="flex flex-col items-start p-4">
+        <div className="w-full">
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="px-4 py-2 cursor-pointer h-auto mb-2 font-normal"
+              onClick={() => onAddShowtime(movie.id)}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add Showtime
+            </Button>
+          )}
+
+          <h4 className="font-medium mb-2">Showtimes:</h4>
+
+          {Object.keys(groupedShowtimes).length > 0 ? (
+            Object.entries(groupedShowtimes).map(([date, dateShowtimes]) => (
+              <div key={date} className="mb-4 w-full">
+                <h5 className="font-medium text-sm mb-2">{date}</h5>
+                <div className="flex flex-wrap gap-2">
+                  {dateShowtimes.map((showtime, index) => (
+                    <Button
+                      key={index}
+                      variant="secondary"
+                      size="sm"
+                      className="text-xs"
+                    >
+                      {formatTime(showtime.start_time)}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className={styles.noShowtimes}>No showtimes available</p>
-        )}
-      </div>
-    </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground italic">
+              No showtimes available
+            </p>
+          )}
+        </div>
+      </CardFooter>
+    </Card>
   );
 }
 

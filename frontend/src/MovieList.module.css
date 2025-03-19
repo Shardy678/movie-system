@@ -1,4 +1,4 @@
-.movieGrid {
+/* .movieGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 2rem;
@@ -50,27 +50,7 @@ header {
   align-items: center;
 }
 
-.addButton {
-  background-color: #6200ea; 
-  color: white; 
-  border: none; 
-  border-radius: 25px; 
-  padding: 12px 24px; 
-  font-size: 16px; 
-  font-weight: bold; 
-  cursor: pointer; 
-  transition: background-color 0.3s ease, transform 0.2s ease; 
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
 
-.addButton:hover {
-  background-color: #3700b3; 
-}
-
-.addButton:active {
-  transform: translateY(0); 
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
-}
 
 .movieTitle {
   display: flex;
@@ -78,46 +58,8 @@ header {
   align-items: center;
 }
 
-.deleteButton {
-  background-color: transparent; 
-  color: #ff0000; 
-  border: none; 
-  border-radius: 10px; 
-  width: 40px; 
-  height: 40px; 
-  font-size: 15px; 
-  margin-right: 10px;
-  font-weight: bold; 
-  cursor: pointer; 
-  transition: background-color 0.3s ease, color 0.3s ease; 
-  box-shadow: none; 
-  display: flex;
-  align-items: center; 
-  justify-content: center; 
-  padding: 0; 
-  box-sizing: border-box; 
-}
 
-.deleteButton:hover {
-  background-color: #e6e6e6; 
-}
 
-.deleteButton:active {
-  background-color: #d4d4d4; 
-}
-
-.showtimeButton {
-  background-color: transparent; 
-  border: 1px solid rgba(128, 128, 128, 0.5);
-  cursor: pointer;
-  border-radius: 5px; 
-  padding: 8px 8px;
-  height: 40px;
-}
-
-.showtimeButton:hover {
-  background-color: #e6e6e6; 
-}
 
 .showtimes {
   color: #333;
@@ -127,4 +69,4 @@ header {
 .showtimes h4, h5 {
   margin: 0;
   margin-bottom: 8px;
-}
+} */

@@ -1,11 +1,9 @@
 import { useState } from "react";
-import styles from "./MovieList.module.css";
 import { useAuth } from "./useAuth";
 import { useMoviesAndShowtimes } from "./useMoviesAndShowtimes";
 import { useNavigate } from "react-router-dom";
 import ShowtimeForm from "./ShowtimeForm";
 import MovieCard from "./MovieCard";
-
 
 function MovieList() {
   const [showForm, setShowForm] = useState<boolean>(false);
@@ -59,35 +57,34 @@ function MovieList() {
         },
         body: JSON.stringify(newShowtime),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to add showtime");
       }
-  
+
       const addedShowtime = await response.json();
-  
+
       setShowtimes((prevShowtimes) => [
         ...(Array.isArray(prevShowtimes) ? prevShowtimes : []),
         addedShowtime,
-      ]);  
+      ]);
       setShowForm(false);
     } catch (error) {
       console.error("Error adding showtime:", error);
     }
   }
-  
 
   if (error) {
-    return <div>Error</div>;
+    return <div className="text-red-500 text-center mt-4">Error loading movies.</div>;
   }
 
   return (
-    <div className={styles.container}>
-      <header>
-        <h1>Movies</h1>
+    <div className="container mx-auto p-4">
+      <header className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Movies</h1>
         {isAdmin && (
           <button
-            className={styles.addButton}
+            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
             onClick={() => navigate("/movies/new")}
           >
             Add New Movie
@@ -95,9 +92,9 @@ function MovieList() {
         )}
       </header>
       {movies.length === 0 ? (
-        <p className={styles.noMovies}>No movies available.</p>
+        <p className="text-gray-600 text-center">No movies available.</p>
       ) : (
-        <div className={styles.movieGrid}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-8 p-8">
           {movies.map((movie) => (
             <MovieCard
               key={movie.id}
