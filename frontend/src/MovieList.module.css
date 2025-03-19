@@ -105,3 +105,26 @@ header {
 .deleteButton:active {
   background-color: #d4d4d4; 
 }
+
+.showtimeButton {
+  background-color: transparent; 
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  cursor: pointer;
+  border-radius: 5px; 
+  padding: 8px 8px;
+  height: 40px;
+}
+
+.showtimeButton:hover {
+  background-color: #e6e6e6; 
+}
+
+.showtimes {
+  color: #333;
+  padding: 1rem;
+}
+
+.showtimes h4, h5 {
+  margin: 0;
+  margin-bottom: 8px;
+}
