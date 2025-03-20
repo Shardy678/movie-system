@@ -18,14 +18,8 @@ import {
 } from "./components/ui/dialog";
 import SeatSelection from "./SeatSelection";
 import { useState } from "react";
+import { Showtime } from "./lib/types";
 
-interface Showtime {
-  id: number;
-  movie_id: number;
-  start_time: string;
-  capacity: number;
-  reserved: number;
-}
 
 interface GroupedShowtimes {
   [date: string]: Showtime[];
@@ -113,9 +107,8 @@ function MovieCard({
       <div
         className="relative w-full h-[375px] bg-cover bg-center"
         style={{
-          backgroundImage: `url(${
-            movie.poster_image || "/placeholder.svg?height=375&width=250"
-          })`,
+          backgroundImage: `url(${movie.poster_image || "/placeholder.svg?height=375&width=250"
+            })`,
         }}
       ></div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "./useAuth";
 import { useMoviesAndShowtimes } from "./useMoviesAndShowtimes";
 import ShowtimeForm from "./ShowtimeForm";
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { NewMovieForm } from "./NewMovieForm";
+import { Movie } from "./lib/types";
 
 function MovieList() {
   const [showForm, setShowForm] = useState<boolean>(false);
@@ -22,11 +23,6 @@ function MovieList() {
   const { isAdmin, token } = useAuth();
   const { movies, showtimes, setShowtimes, setMovies, error } =
     useMoviesAndShowtimes(token);
-
-  useEffect(() => {
-    console.log("Updated movies state:", movies);
-  }, [movies]);
-    
 
   async function deleteMovie(movieId: number) {
     if (!token) {
@@ -89,8 +85,8 @@ function MovieList() {
     }
   }
 
-  const handleAddMovie = (newMovie: any) => {
-    console.log("New movie added:", newMovie); 
+  const handleAddMovie = (newMovie: Movie) => {
+    console.log("New movie added:", newMovie);
     setMovies((prev) => [...prev, newMovie]);
     setShowNewMovieDialog(false);
   };

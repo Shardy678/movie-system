@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-
-interface Movie {
-  id: number;
-  title: string;
-  description: string;
-  genre: string;
-  poster_image: string;
-}
+import { Movie } from "./lib/types";
 
 interface Showtime {
   id: number;
