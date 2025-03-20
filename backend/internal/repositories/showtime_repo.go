@@ -124,13 +124,27 @@ func (repo *ShowtimeRepository) GetAvailableSeats(ctx context.Context, id int) (
 }
 
 func generateAllSeats(capacity int) []string {
-	rows := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}
-	columns := capacity / len(rows)
-	var seats []string
-	for _, row := range rows {
-		for col := 1; col <= columns; col++ {
-			seats = append(seats, fmt.Sprintf("%s%d", row, col))
-		}
-	}
-	return seats
+    const maxRows = 10
+    const maxSeatsPerRow = 10
+
+    rows := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}
+    
+    if capacity > maxRows*maxSeatsPerRow {
+        capacity = maxRows * maxSeatsPerRow
+    }
+    
+    var seats []string
+    row := 0
+    col := 1
+    
+    for i := 0; i < capacity; i++ {
+        seats = append(seats, fmt.Sprintf("%s%d", rows[row], col))
+        col++
+        if col > maxSeatsPerRow {
+            col = 1
+            row++
+        }
+    }
+    return seats
 }
+

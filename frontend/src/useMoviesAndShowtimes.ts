@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface Movie {
   id: number;
@@ -9,6 +9,7 @@ interface Movie {
 }
 
 interface Showtime {
+  id: number;
   movie_id: number;
   start_time: string;
   capacity: number;
@@ -18,43 +19,45 @@ interface Showtime {
 export function useMoviesAndShowtimes(token: string | null) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [showtimes, setShowtimes] = useState<Showtime[]>([]);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     const fetchMoviesAndShowtimes = async () => {
       try {
         if (!token) return;
 
-        const movieResponse = await fetch('http://localhost:8080/movies', {
+        const movieResponse = await fetch("http://localhost:8080/movies", {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         });
 
         if (!movieResponse.ok) {
-          throw new Error('Failed to fetch movies');
+          throw new Error("Failed to fetch movies");
         }
 
         const moviesData = await movieResponse.json();
         setMovies(moviesData);
 
-        const showtimeResponse = await fetch('http://localhost:8080/showtimes', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+        const showtimeResponse = await fetch(
+          "http://localhost:8080/showtimes",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
 
         if (!showtimeResponse.ok) {
-          throw new Error('Failed to fetch showtimes');
+          throw new Error("Failed to fetch showtimes");
         }
 
         const showtimeData = await showtimeResponse.json();
         setShowtimes(showtimeData);
-
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error fetching data');
+        setError(err instanceof Error ? err.message : "Error fetching data");
       }
     };
 

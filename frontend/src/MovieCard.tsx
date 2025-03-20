@@ -9,8 +9,18 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./components/ui/dialog";
+import SeatSelection from "./SeatSelection";
+import { useState } from "react";
 
 interface Showtime {
+  id: number;
   movie_id: number;
   start_time: string;
   capacity: number;
@@ -65,9 +75,38 @@ function MovieCard({
   onDelete,
   onAddShowtime,
 }: MovieCardProps) {
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+
   const movieShowtimes =
     showtimes?.filter((showtime) => showtime.movie_id === movie.id) || [];
   const groupedShowtimes = groupShowtimesByDate(movieShowtimes);
+
+  const handleGetSeats = async (showtimeId: number) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        `http://localhost:8080/showtimes/seats/${showtimeId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error fetching seats: ${response.statusText}`);
+      }
+
+      const availableSeats = await response.json();
+      setSelectedSeats(availableSeats);
+      console.log(selectedSeats);
+    } catch (error) {
+      console.error("Failed to fetch seats:", error);
+      setSelectedSeats([]);
+    }
+  };
 
   return (
     <Card className="overflow-hidden p-0">
@@ -124,14 +163,27 @@ function MovieCard({
                 <h5 className="font-medium text-sm mb-2">{date}</h5>
                 <div className="flex flex-wrap gap-2">
                   {dateShowtimes.map((showtime, index) => (
-                    <Button
-                      key={index}
-                      variant="secondary"
-                      size="sm"
-                      className="text-xs"
-                    >
-                      {formatTime(showtime.start_time)}
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger onClick={() => handleGetSeats(showtime.id)} asChild>
+                        <Button
+                          key={index}
+                          variant="secondary"
+                          size="sm"
+                          className="text-xs"
+                        >
+                          {formatTime(showtime.start_time)}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>
+                            {movie.title} at {formatTime(showtime.start_time)}{" "}
+                            {date}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <SeatSelection availableSeats={selectedSeats} />
+                      </DialogContent>
+                    </Dialog>
                   ))}
                 </div>
               </div>
