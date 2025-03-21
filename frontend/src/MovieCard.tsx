@@ -70,6 +70,7 @@ function MovieCard({
   onAddShowtime,
 }: MovieCardProps) {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
 
   const movieShowtimes =
     showtimes?.filter((showtime) => showtime.movie_id === movie.id) || [];
@@ -95,7 +96,7 @@ function MovieCard({
 
       const availableSeats = await response.json();
       setSelectedSeats(availableSeats);
-      console.log(selectedSeats);
+      // setOpen(true)
     } catch (error) {
       console.error("Failed to fetch seats:", error);
       setSelectedSeats([]);
@@ -156,7 +157,7 @@ function MovieCard({
                 <h5 className="font-medium text-sm mb-2">{date}</h5>
                 <div className="flex flex-wrap gap-2">
                   {dateShowtimes.map((showtime, index) => (
-                    <Dialog>
+                    <Dialog open={open} onOpenChange={setOpen}>
                       <DialogTrigger onClick={() => handleGetSeats(showtime.id)} asChild>
                         <Button
                           key={index}
@@ -174,7 +175,7 @@ function MovieCard({
                             {date}
                           </DialogTitle>
                         </DialogHeader>
-                        <SeatSelection availableSeats={selectedSeats} showtimeId={showtime.id} movieId= {movie.id} />
+                        <SeatSelection onClose={() => setOpen(false)} availableSeats={selectedSeats} showtimeId={showtime.id} movieId= {movie.id} />
                       </DialogContent>
                     </Dialog>
                   ))}

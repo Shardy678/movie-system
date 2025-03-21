@@ -21,10 +21,12 @@ function SeatSelection({
   availableSeats,
   movieId,
   showtimeId,
+  onClose
 }: {
   availableSeats: string[];
   movieId: number;
   showtimeId: number;
+  onClose: () => void
 }) {
   const [seats, setSeats] = useState<Seat[]>([]);
 
@@ -112,6 +114,7 @@ function SeatSelection({
       );
 
       toast("Seat(s) reserved");
+      onClose()
     } catch (error) {
       console.error("Error reserving seats:", error);
       toast("Failed to reserve seats");
