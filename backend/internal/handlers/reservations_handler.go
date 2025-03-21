@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"movie-system/internal/models"
 	"movie-system/internal/repositories"
 	"movie-system/internal/services"
@@ -32,14 +33,38 @@ func (h *ReservationHandler) HandleReservation(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
+		return
+	}
+
+	
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		http.Error(w, "Invalid authorization format", http.StatusUnauthorized)
+		return
+	}
+
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+
+	userId, err := h.AuthService.ExtractUserIDFromJWT(token)
+	if err != nil {
+		log.Printf("Error extracting user ID from JWT: %v", err)
+		http.Error(w, "Invalid token", http.StatusBadRequest)
+		return
+	}
+
+
 	var reservation models.Reservation
 	if err := json.NewDecoder(r.Body).Decode(&reservation); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	if reservation.UserID == 0 || reservation.ShowtimeID == 0 || len(reservation.Seats) == 0 {
-		http.Error(w, "Missing required fields (user_id, showtime_id, or seats)", http.StatusBadRequest)
+	reservation.UserID = uint(userId)
+
+	if reservation.ShowtimeID == 0 || len(reservation.Seats) == 0 {
+		http.Error(w, "Missing required fields (movie_id, user_id, showtime_id, or seats)", http.StatusBadRequest)
 		return
 	}
 

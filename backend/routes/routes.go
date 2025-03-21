@@ -22,6 +22,7 @@ func SetupRoutes(mh *handlers.MovieHandler, sh *handlers.ShowtimeHandler, ah *ha
 	// User routes
 	http.Handle("/auth/signup", middleware("user", http.HandlerFunc(ah.SignUp)))
 	http.Handle("/auth/login", http.HandlerFunc(ah.LogIn))
+	http.Handle("/auth/getid", http.HandlerFunc(ah.GetId))
 
 	// Showtime routes
 	http.Handle("/showtimes", middleware("user", sh.HandleGetShowtimes))

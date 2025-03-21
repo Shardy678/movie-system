@@ -174,7 +174,7 @@ function MovieCard({
                             {date}
                           </DialogTitle>
                         </DialogHeader>
-                        <SeatSelection availableSeats={selectedSeats} />
+                        <SeatSelection availableSeats={selectedSeats} showtimeId={showtime.id} movieId= {movie.id} />
                       </DialogContent>
                     </Dialog>
                   ))}

@@ -77,3 +77,42 @@ func (h *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
+
+func (h *AuthHandler) GetId(w http.ResponseWriter, r *http.Request) {
+	// Check if the request method is POST
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var requestBody struct {
+		Token string `json:"token"`
+	}
+
+	// Decode the JSON body into the requestBody struct
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		log.Printf("Error decoding JSON: %v", err)
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	// Extract user ID from the JWT token
+	userId, err := h.service.ExtractUserIDFromJWT(requestBody.Token)
+	if err != nil {
+		log.Printf("Error extracting user ID from JWT: %v", err)
+		http.Error(w, "Invalid token", http.StatusBadRequest)
+		return
+	}
+
+	// You can now use userId for further processing
+	// For example, you might want to return it in the response
+	response := map[string]interface{}{
+		"user_id": userId,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
