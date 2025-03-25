@@ -18,12 +18,26 @@ func NewShowtimeRepository(db *pgxpool.Pool) *ShowtimeRepository {
 }
 
 func (repo *ShowtimeRepository) InsertShowtime(ctx context.Context, showtime *models.Showtime) error {
-	_, err := repo.DB.Exec(ctx, `
+	query := `
 		INSERT INTO showtimes (movie_id, start_time, capacity, reserved)
-		VALUES ($1,$2,$3,$4)`,
-		showtime.MovieID, showtime.StartTime, showtime.Capacity, showtime.Reserved)
-	return err
+		VALUES ($1, $2, $3, $4)
+		RETURNING id
+	`
+	err := repo.DB.QueryRow(ctx, query,
+		showtime.MovieID,
+		showtime.StartTime,
+		showtime.Capacity,
+		showtime.Reserved,
+	).Scan(&showtime.ID)
+	if err != nil {
+		log.Printf("error inserting showtime: %v", err)
+		return err
+	}
+	log.Printf("inserted showtime with id: %d", showtime.ID)
+	return nil
 }
+
+
 
 func (repo *ShowtimeRepository) GetShowtimes(ctx context.Context) ([]models.Showtime, error) {
 	rows, err := repo.DB.Query(ctx, `

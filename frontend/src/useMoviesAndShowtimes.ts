@@ -50,11 +50,15 @@ export function useMoviesAndShowtimes(token: string | null) {
         }
 
         const showtimeData = await showtimeResponse.json();
-        const uniqueShowtimes = showtimeData.filter(
-          (showtime: Showtime, index: number, self: Showtime[]) =>
-            index === self.findIndex((s) => s.id === showtime.id)
-        );
-        setShowtimes(uniqueShowtimes);
+        if (showtimeData === null) {
+          setShowtimes([]);
+        } else {
+          const uniqueShowtimes = showtimeData.filter(
+            (showtime: Showtime, index: number, self: Showtime[]) =>
+              index === self.findIndex((s) => s.id === showtime.id)
+          );
+          setShowtimes(uniqueShowtimes);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error fetching data");
         console.error("Error fetching data:", err);

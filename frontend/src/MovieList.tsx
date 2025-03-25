@@ -21,7 +21,8 @@ function MovieList() {
   const [showNewMovieDialog, setShowNewMovieDialog] = useState<boolean>(false);
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const { isAdmin, token } = useAuth();
-  const { movies, showtimes, setMovies, error } = useMoviesAndShowtimes(token);
+  const { movies, showtimes, setShowtimes, setMovies, error } =
+    useMoviesAndShowtimes(token);
 
   async function deleteMovie(movieId: number) {
     if (!token) {
@@ -52,6 +53,11 @@ function MovieList() {
     console.log("New movie added:", newMovie);
     setMovies((prev) => [...prev, newMovie]);
     setShowNewMovieDialog(false);
+  };
+
+  const handleShowtimeAdd = (newShowtime: any) => {
+    setShowtimes((prev) => [...prev, newShowtime]);
+    setShowForm(false);
   };
 
   if (error) {
@@ -94,6 +100,7 @@ function MovieList() {
         <ShowtimeForm
           movieId={selectedMovieId}
           onClose={() => setShowForm(false)}
+          onShowtimeAdd={handleShowtimeAdd}
         />
       )}
 

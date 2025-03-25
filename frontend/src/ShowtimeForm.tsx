@@ -30,9 +30,10 @@ import { cn } from "@/lib/utils";
 interface ShowtimeFormProps {
   movieId: number;
   onClose: () => void;
+  onShowtimeAdd: (newShowtime: any) => void;
 }
 
-function ShowtimeForm({ movieId, onClose }: ShowtimeFormProps) {
+function ShowtimeForm({ movieId, onClose, onShowtimeAdd }: ShowtimeFormProps) {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState("");
   const [capacity, setCapacity] = useState(0);
@@ -94,7 +95,7 @@ function ShowtimeForm({ movieId, onClose }: ShowtimeFormProps) {
         navigate("/login");
         return;
       }
-
+      // Не возвращает айди корректно, поэтому после создания в стейте у нового шоутайма айди: 0
       const response = await fetch("http://localhost:8080/showtimes/add", {
         method: "POST",
         headers: {
@@ -109,6 +110,8 @@ function ShowtimeForm({ movieId, onClose }: ShowtimeFormProps) {
         throw new Error(errorData.error || "Failed to add showtime.");
       }
 
+      const newShowtime = await response.json();
+      onShowtimeAdd(newShowtime);
       onClose();
 
       toast("Showtime added successfully", {
