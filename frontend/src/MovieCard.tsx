@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,9 +18,7 @@ import {
   DialogTrigger,
 } from "./components/ui/dialog";
 import SeatSelection from "./SeatSelection";
-import { useState } from "react";
 import { Showtime } from "./lib/types";
-
 
 interface GroupedShowtimes {
   [date: string]: Showtime[];
@@ -70,13 +69,13 @@ function MovieCard({
   onAddShowtime,
 }: MovieCardProps) {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
-  const [open, setOpen] = useState(false);
+  const [openShowtimeId, setOpenShowtimeId] = useState<number | null>(null);
 
   const movieShowtimes =
     showtimes?.filter((showtime) => showtime.movie_id === movie.id) || [];
   const groupedShowtimes = groupShowtimesByDate(movieShowtimes);
 
-  const handleGetSeats = async (showtimeId: number) => {
+  const handleGetSeats = useCallback(async (showtimeId: number) => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
@@ -100,16 +99,19 @@ function MovieCard({
       console.error("Failed to fetch seats:", error);
       setSelectedSeats([]);
     }
+  }, []);
+
+  const backgroundStyle = {
+    backgroundImage: `url(${
+      movie.poster_image || "/placeholder.svg?height=375&width=250"
+    })`,
   };
 
   return (
     <Card className="overflow-hidden p-0">
       <div
         className="relative w-full h-[375px] bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${movie.poster_image || "/placeholder.svg?height=375&width=250"
-            })`,
-        }}
+        style={backgroundStyle}
       ></div>
 
       <CardHeader className="flex flex-row items-center justify-between px-4 space-y-0">
@@ -155,11 +157,21 @@ function MovieCard({
               <div key={date} className="mb-4 w-full">
                 <h5 className="font-medium text-sm mb-2">{date}</h5>
                 <div className="flex flex-wrap gap-2">
-                  {dateShowtimes.map((showtime, index) => (
-                    <Dialog open={open} onOpenChange={setOpen}>
-                      <DialogTrigger onClick={() => handleGetSeats(showtime.id)} asChild>
+                  {dateShowtimes.map((showtime) => (
+                    <Dialog
+                      key={showtime.id}
+                      open={openShowtimeId === showtime.id}
+                      onOpenChange={(open) => {
+                        if (open) {
+                          handleGetSeats(showtime.id);
+                          setOpenShowtimeId(showtime.id);
+                        } else {
+                          setOpenShowtimeId(null);
+                        }
+                      }}
+                    >
+                      <DialogTrigger asChild>
                         <Button
-                          key={index}
                           variant="secondary"
                           size="sm"
                           className="text-xs"
@@ -174,7 +186,12 @@ function MovieCard({
                             {date}
                           </DialogTitle>
                         </DialogHeader>
-                        <SeatSelection onClose={() => setOpen(false)} availableSeats={selectedSeats} showtimeId={showtime.id} movieId= {movie.id} />
+                        <SeatSelection
+                          onClose={() => setOpenShowtimeId(null)}
+                          availableSeats={selectedSeats}
+                          showtimeId={showtime.id}
+                          movieId={movie.id}
+                        />
                       </DialogContent>
                     </Dialog>
                   ))}
