@@ -13,12 +13,14 @@ export function useMoviesAndShowtimes(token: string | null) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [showtimes, setShowtimes] = useState<Showtime[]>([]);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMoviesAndShowtimes = async () => {
-      try {
-        if (!token) return;
+      if (!token) return;
 
+      setLoading(true);
+      try {
         const movieResponse = await fetch("http://localhost:8080/movies", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,14 +50,27 @@ export function useMoviesAndShowtimes(token: string | null) {
         }
 
         const showtimeData = await showtimeResponse.json();
-        setShowtimes(showtimeData);
+        const uniqueShowtimes = showtimeData.filter(
+          (showtime: Showtime, index: number, self: Showtime[]) =>
+            index === self.findIndex((s) => s.id === showtime.id)
+        );
+        setShowtimes(uniqueShowtimes);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error fetching data");
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchMoviesAndShowtimes();
+
+    return () => {
+      setMovies([]);
+      setShowtimes([]);
+      setError("");
+    };
   }, [token]);
 
-  return { movies, setMovies, showtimes, setShowtimes, error };
+  return { movies, setMovies, showtimes, setShowtimes, error, loading };
 }

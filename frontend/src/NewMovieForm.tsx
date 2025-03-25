@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Movie } from "./lib/types";
 
 interface NewMovieFormProps {
-  onSuccess: (movie: any) => void;
+  onSuccess: (movie: Movie) => void;
   onCancel: () => void;
 }
 
@@ -20,7 +21,6 @@ export function NewMovieForm({ onSuccess, onCancel }: NewMovieFormProps) {
   const [posterImage, setPosterImage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +53,7 @@ export function NewMovieForm({ onSuccess, onCancel }: NewMovieFormProps) {
 
       const newMovie = await response.json();
       onSuccess({
-        id: newMovie.id, 
+        id: newMovie.id,
         title: newMovie.title,
         description: newMovie.description,
         genre: newMovie.genre,

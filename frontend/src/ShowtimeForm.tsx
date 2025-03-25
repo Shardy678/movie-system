@@ -30,14 +30,9 @@ import { cn } from "@/lib/utils";
 interface ShowtimeFormProps {
   movieId: number;
   onClose: () => void;
-  onAddShowtime: (showtime: {
-    movie_id: number;
-    start_time: string;
-    capacity: number;
-  }) => void;
 }
 
-function ShowtimeForm({ movieId, onClose, onAddShowtime }: ShowtimeFormProps) {
+function ShowtimeForm({ movieId, onClose }: ShowtimeFormProps) {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState("");
   const [capacity, setCapacity] = useState(0);
@@ -114,8 +109,6 @@ function ShowtimeForm({ movieId, onClose, onAddShowtime }: ShowtimeFormProps) {
         throw new Error(errorData.error || "Failed to add showtime.");
       }
 
-      const newShowtime = await response.json();
-      onAddShowtime(newShowtime);
       onClose();
 
       toast("Showtime added successfully", {

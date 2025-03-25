@@ -21,8 +21,7 @@ function MovieList() {
   const [showNewMovieDialog, setShowNewMovieDialog] = useState<boolean>(false);
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const { isAdmin, token } = useAuth();
-  const { movies, showtimes, setShowtimes, setMovies, error } =
-    useMoviesAndShowtimes(token);
+  const { movies, showtimes, setMovies, error } = useMoviesAndShowtimes(token);
 
   async function deleteMovie(movieId: number) {
     if (!token) {
@@ -46,42 +45,6 @@ function MovieList() {
       setMovies((prev) => prev.filter((movie) => movie.id !== movieId));
     } catch (error) {
       console.error("Error deleting movie:", error);
-    }
-  }
-
-  async function addShowtime(newShowtime: {
-    movie_id: number;
-    start_time: string;
-    capacity: number;
-  }) {
-    console.log("New Showtime object:", newShowtime);
-    if (!token) {
-      console.error("No token found, user might not be authenticated.");
-      return;
-    }
-    try {
-      const response = await fetch("http://localhost:8080/showtimes/add", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newShowtime),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add showtime");
-      }
-
-      const addedShowtime = await response.json();
-
-      setShowtimes((prevShowtimes) => [
-        ...(Array.isArray(prevShowtimes) ? prevShowtimes : []),
-        addedShowtime,
-      ]);
-      setShowForm(false);
-    } catch (error) {
-      console.error("Error adding showtime:", error);
     }
   }
 
@@ -131,7 +94,6 @@ function MovieList() {
         <ShowtimeForm
           movieId={selectedMovieId}
           onClose={() => setShowForm(false)}
-          onAddShowtime={addShowtime}
         />
       )}
 

@@ -21,12 +21,12 @@ function SeatSelection({
   availableSeats,
   movieId,
   showtimeId,
-  onClose
+  onClose,
 }: {
   availableSeats: string[];
   movieId: number;
   showtimeId: number;
-  onClose: () => void
+  onClose: () => void;
 }) {
   const [seats, setSeats] = useState<Seat[]>([]);
 
@@ -44,7 +44,7 @@ function SeatSelection({
     });
 
     const rows = Array.from(
-      new Set(parsedSeats.map((seat) => seat.row))
+      new Set(parsedSeats.map((seat) => seat.row)),
     ).sort();
     const maxColumn = Math.max(...parsedSeats.map((seat) => seat.column));
 
@@ -62,7 +62,7 @@ function SeatSelection({
             column: col,
             isAvailable: false,
             isSelected: false,
-          }
+          },
         );
       }
     });
@@ -74,8 +74,8 @@ function SeatSelection({
       prevSeats.map((seat) =>
         seat.id === seatId && seat.isAvailable
           ? { ...seat, isSelected: !seat.isSelected }
-          : seat
-      )
+          : seat,
+      ),
     );
   };
 
@@ -99,8 +99,6 @@ function SeatSelection({
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
         throw new Error("Failed to reserve seats");
       }
@@ -109,12 +107,12 @@ function SeatSelection({
         prevSeats.map((seat) =>
           selectedSeats.includes(seat.id)
             ? { ...seat, isAvailable: false, isSelected: false }
-            : seat
-        )
+            : seat,
+        ),
       );
 
       toast("Seat(s) reserved");
-      onClose()
+      onClose();
     } catch (error) {
       console.error("Error reserving seats:", error);
       toast("Failed to reserve seats");
@@ -122,11 +120,14 @@ function SeatSelection({
   };
 
   const selectedSeats = seats.filter((seat) => seat.isSelected);
-  const seatsByRow = seats.reduce((acc, seat) => {
-    if (!acc[seat.row]) acc[seat.row] = [];
-    acc[seat.row].push(seat);
-    return acc;
-  }, {} as Record<string, Seat[]>);
+  const seatsByRow = seats.reduce(
+    (acc, seat) => {
+      if (!acc[seat.row]) acc[seat.row] = [];
+      acc[seat.row].push(seat);
+      return acc;
+    },
+    {} as Record<string, Seat[]>,
+  );
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -163,8 +164,8 @@ function SeatSelection({
                             !seat.isAvailable
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700"
                               : seat.isSelected
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50"
                           }
                         `}
                             aria-label={`Seat ${seat.id}`}

@@ -96,7 +96,6 @@ function MovieCard({
 
       const availableSeats = await response.json();
       setSelectedSeats(availableSeats);
-      // setOpen(true)
     } catch (error) {
       console.error("Failed to fetch seats:", error);
       setSelectedSeats([]);
