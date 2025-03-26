@@ -69,6 +69,14 @@ function MovieList() {
     [setShowtimes]
   );
 
+  const handleUpdateMovie = (updatedMovie: Movie) => {
+    setMovies((prevMovies) =>
+      prevMovies.map((movie) =>
+        movie.id === updatedMovie.id ? updatedMovie : movie
+      )
+    );
+  };
+
   if (error) {
     return (
       <div className="text-red-500 text-center mt-4">Error loading movies.</div>
@@ -93,6 +101,7 @@ function MovieList() {
               setSelectedMovieId(id);
               setShowForm(true);
             }}
+            onMovieUpdate={handleUpdateMovie}
           />
         ))}
       </div>

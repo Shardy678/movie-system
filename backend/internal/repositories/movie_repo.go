@@ -57,14 +57,29 @@ func (repo *MovieRepository) GetMovies(ctx context.Context, genre string) ([]mod
 	return movies, nil
 }
 
-func (repo *MovieRepository) UpdateMovie(ctx context.Context, id int, movie *models.Movie) error {
+func (repo *MovieRepository) UpdateMovie(ctx context.Context, id int, movie *models.Movie) (*models.Movie, error) {
 	_, err := repo.DB.Exec(ctx, `
 		UPDATE movies
 		SET title = $1, description = $2, genre = $3, poster_image = $4
 		WHERE id = $5`,
 		movie.Title, movie.Description, movie.Genre, movie.PosterImage, id)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	var updatedMovie models.Movie
+	err = repo.DB.QueryRow(ctx, `
+		SELECT id, title, description, genre, poster_image
+		FROM movies
+		WHERE id = $1`, id).
+		Scan(&updatedMovie.ID, &updatedMovie.Title, &updatedMovie.Description, &updatedMovie.Genre, &updatedMovie.PosterImage)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedMovie, nil
 }
+
 
 func (repo *MovieRepository) DeleteMovie(ctx context.Context, id int) error {
 	_, err := repo.DB.Exec(ctx, "DELETE FROM movies WHERE id = $1", id)

@@ -18,18 +18,11 @@ import {
   DialogTrigger,
 } from "./components/ui/dialog";
 import SeatSelection from "./SeatSelection";
-import { Showtime } from "./lib/types";
+import { Movie, Showtime } from "./lib/types";
+import EditMovieDialog from "./EditMovieDialog";
 
 interface GroupedShowtimes {
   [date: string]: Showtime[];
-}
-
-interface Movie {
-  id: number;
-  title: string;
-  description: string;
-  genre: string;
-  poster_image?: string;
 }
 
 interface MovieCardProps {
@@ -38,6 +31,7 @@ interface MovieCardProps {
   isAdmin: boolean;
   onDelete: (movieId: number) => void;
   onAddShowtime: (movieId: number) => void;
+  onMovieUpdate: (updatedMovie: Movie) => void;
 }
 
 const formatDate = (dateString: string): string =>
@@ -67,6 +61,7 @@ function MovieCard({
   isAdmin,
   onDelete,
   onAddShowtime,
+  onMovieUpdate,
 }: MovieCardProps) {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [openShowtimeId, setOpenShowtimeId] = useState<number | null>(null);
@@ -117,13 +112,16 @@ function MovieCard({
       <CardHeader className="flex flex-row items-center justify-between px-4 space-y-0">
         <h2 className="text-xl font-semibold">{movie.title}</h2>
         {isAdmin && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(movie.id)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center">
+            <EditMovieDialog movie={movie} onMovieUpdate={onMovieUpdate} />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(movie.id)}
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </CardHeader>
 

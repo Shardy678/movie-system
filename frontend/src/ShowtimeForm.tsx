@@ -95,7 +95,6 @@ function ShowtimeForm({ movieId, onClose, onShowtimeAdd }: ShowtimeFormProps) {
         navigate("/login");
         return;
       }
-      // Не возвращает айди корректно, поэтому после создания в стейте у нового шоутайма айди: 0
       const response = await fetch("http://localhost:8080/showtimes/add", {
         method: "POST",
         headers: {

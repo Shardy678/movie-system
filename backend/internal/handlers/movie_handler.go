@@ -79,15 +79,17 @@ func (h *MovieHandler) HandleUpdateMovie(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = h.Repo.UpdateMovie(context.Background(), id, &movie)
+	updatedMovie, err := h.Repo.UpdateMovie(context.Background(), id, &movie)
 	if err != nil {
 		http.Error(w, "Failed to update movie", http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Movie updated successfully"})
+	json.NewEncoder(w).Encode(updatedMovie)
 }
+
 
 func (h *MovieHandler) HandleDeleteMovie(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
