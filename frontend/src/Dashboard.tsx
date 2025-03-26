@@ -1,4 +1,4 @@
-import { DollarSign, Users } from "lucide-react";
+import { Armchair, Clapperboard, DollarSign, Users } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -159,7 +159,7 @@ const Dashboard = () => {
                 <CardTitle className="text-sm font-medium">
                   Seat Price
                 </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <Armchair className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">${seatPrice}</div>
@@ -171,6 +171,7 @@ const Dashboard = () => {
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Movies</CardTitle>
                 <div className="h-4 w-4 text-muted-foreground" />
+                <Clapperboard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
