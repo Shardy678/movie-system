@@ -1,0 +1,96 @@
+.authContainer {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 32px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  .input {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #111827;
+    background-color: #f9fafb;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  .submitButton {
+    padding: 10px 16px;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .submitButton:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .submitButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.5);
+  }
+  
+  .toggleContainer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+  }
+  
+  .toggleButton {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0;
+    margin-left: 4px;
+  }
+  
+  .toggleButton:hover {
+    text-decoration: underline;
+  }
+  
+  

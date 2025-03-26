@@ -11,13 +11,19 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   app:
     build: .
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy  
     environment:
       DB_HOST: db
       DB_PORT: 5432
@@ -25,5 +31,6 @@ services:
       DB_PASSWORD: password
       DB_NAME: movie_system
       SECRET_KEY: thisisagoodsecretitellya
+
 volumes:
   pgdata:
