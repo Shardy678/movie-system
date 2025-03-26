@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { NewMovieForm } from "./NewMovieForm";
 import { Movie } from "./lib/types";
+import { useNavigate } from "react-router-dom";
 
 function MovieList() {
   const [showForm, setShowForm] = useState<boolean>(false);
@@ -77,6 +78,8 @@ function MovieList() {
     );
   };
 
+  const navigate = useNavigate();
+
   if (error) {
     return (
       <div className="text-red-500 text-center mt-4">Error loading movies.</div>
@@ -113,9 +116,12 @@ function MovieList() {
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Movies</h1>
         {isAdmin && (
-          <Button onClick={() => setShowNewMovieDialog(true)}>
-            Add New Movie
-          </Button>
+          <div className="flex items-center space-x-4">
+            <Button onClick={() => setShowNewMovieDialog(true)}>
+              Add New Movie
+            </Button>
+            <Button onClick={() => navigate("/revenue")}>Dashboard</Button>
+          </div>
         )}
       </header>
       {renderMovies()}
